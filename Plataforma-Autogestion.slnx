@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PlataformaAutogestion.Api/PlataformaAutogestion.Api.csproj" />
+  <Project Path="PlataformaAutogestion.Application/PlataformaAutogestion.Application.csproj" />
+  <Project Path="PlataformaAutogestion.Domain/PlataformaAutogestion.Domain.csproj" />
+  <Project Path="PlataformaAutogestion.Infrastructure/PlataformaAutogestion.Infrastructure.csproj" />
+</Solution>
