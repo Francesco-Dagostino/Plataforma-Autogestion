@@ -7,7 +7,7 @@
 ## 🛠️ ETAPA 1: Los Cimientos y el Modelo de Datos (Días 1 a 3)
 *Objetivo: Dejar el repositorio limpio, la base de datos local conectada y el esquema de tablas funcionando.*
 
-- [ ] **Tarjeta 1: Limpieza Total de la Solución**
+- [x] **Tarjeta 1: Limpieza Total de la Solución**
   - **Responsable:** Danilo Mercado
   - **Capa:** API / Application / Infrastructure
   - *Descripción:* Eliminar los archivos por defecto (`Class1.cs` y `WeatherForecastController.cs`) en todas las capas para limpiar la Clean Architecture.
