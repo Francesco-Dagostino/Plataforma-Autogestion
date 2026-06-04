@@ -13,7 +13,7 @@ namespace PlataformaAutogestion.Domain.Enums
             Empleado
         }
 
-        public enum EstadoJornada
+        public enum StatusDay
         {
             Aprobada,
             Desaprobada,
