@@ -6,7 +6,7 @@ namespace PlataformaAutogestion.Domain.Entities
 {
     public class DetailLiquidation
     {
-        public int IdDetail { get; set; }
+        public int Id { get; set; }
         public int TotalHours { get; set; }
         public int amount  { get; set; }
         public int IdLiquidation { get; set; }

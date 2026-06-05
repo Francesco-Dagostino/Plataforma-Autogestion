@@ -6,7 +6,7 @@ namespace PlataformaAutogestion.Domain.Entities
 {
     public class Company
     {
-        public int IdCompany { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public int Cuit {  get; set; }
         public DateTime DateHigh { get; set; }
