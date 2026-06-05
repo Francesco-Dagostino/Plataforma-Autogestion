@@ -12,7 +12,7 @@
   - **Capa:** API / Application / Infrastructure
   - *Descripción:* Eliminar los archivos por defecto (`Class1.cs` y `WeatherForecastController.cs`) en todas las capas para limpiar la Clean Architecture.
 
-- [ ] **Tarjeta 2: Estructura del DbContext Inicial**
+- [x] **Tarjeta 2: Estructura del DbContext Inicial**
   - **Responsable:** Francesco D'agostino
   - **Capa:** Infrastructure / API
   - *Descripción:* Crear el `ApplicationDbContext` heredando de EF Core. Configurar la inyección de dependencias en `Program.cs` de la API y agregar la `ConnectionString` en el `appsettings.json` local.
@@ -22,7 +22,7 @@
   - **Capa:** Domain / Infrastructure
   - *Descripción:* Escribir el mapeo con Fluent API para las entidades del diagrama corregido (`Usuario`, `Empresa`, `JornadaLaboral`, `Liquidacion`) definiendo claves primarias y foráneas.
 
-- [ ] **Tarjeta 4: Primera Migración Base**
+- [x] **Tarjeta 4: Primera Migración Base**
   - **Responsable:** Danilo Mercado
   - **Capa:** Infrastructure / BD
   - *Descripción:* Correr comandos `Add-Migration InitialCreate` y `Update-Database` para verificar que el motor de base de datos impacte el esquema local sin errores de relaciones.
