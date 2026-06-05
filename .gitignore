@@ -3,8 +3,12 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# Build and publish folders
+appsettings.json
+
 # dotenv files
 .env
+
 
 # User-specific files
 *.rsuser
