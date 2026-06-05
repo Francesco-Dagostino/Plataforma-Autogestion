@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PlataformaAutogestion.Application\PlataformaAutogestion.Application.csproj" />
+    <ProjectReference Include="..\PlataformaAutogestion.Infrastructure\PlataformaAutogestion.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

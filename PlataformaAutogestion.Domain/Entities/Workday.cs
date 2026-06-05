@@ -7,7 +7,7 @@ namespace PlataformaAutogestion.Domain.Entities
 {
     public class Workday
     {
-        public string IdWorkday { get; set; }
+        public string Id { get; set; }
         public int HoursWorked { get; set; }
         public DateTime DateEntry { get; set; } // esto es para la fecha en que se cargo la jornada!
         public DateTime DateApproval { get; set; } // y esto para cuando fue aprobada!

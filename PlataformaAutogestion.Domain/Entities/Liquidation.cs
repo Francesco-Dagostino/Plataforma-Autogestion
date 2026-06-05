@@ -7,7 +7,7 @@ namespace PlataformaAutogestion.Domain.Entities
 {
     public class Liquidation
     {
-        public int IdLiquidation {  get; set; }
+        public int Id {  get; set; }
         public DateTime LiquidationDate { get; set; }
         public int Total {  get; set; }
         public int IdCompany { get; set; }
