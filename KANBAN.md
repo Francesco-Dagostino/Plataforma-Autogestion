@@ -1,6 +1,6 @@
-# 📋 Tablero Kanban Integrado: TPI Programación 4 & TIF
+# 📋 Tablero Kanban Integrado: TPI Programación 4 & TIF (Clean Architecture)
 
-> **Regla de oro del equipo:** Trabajo secuencial por etapas. No se arranca una etapa nueva hasta que todos los casilleros de la etapa anterior estén tildados `[x]` y el código compile localmente.
+> **Regla de oro del equipo:** Trabajo secuencial por etapas. Todo feature debe respetar el flujo: `Controller` -> `IService` -> `Service`.
 
 ---
 
@@ -10,87 +10,95 @@
 - [x] **Tarjeta 1: Limpieza Total de la Solución**
   - **Responsable:** Danilo Mercado
   - **Capa:** API / Application / Infrastructure
-  - *Descripción:* Eliminar los archivos por defecto (`Class1.cs` y `WeatherForecastController.cs`) en todas las capas para limpiar la Clean Architecture.
+  - *Descripción:* Eliminar archivos por defecto (`Class1.cs`, `WeatherForecastController`). Dejar las capas limpias.
 
-- [x] **Tarjeta 2: Estructura del DbContext Inicial**
+- [x] **Tarjeta 2: DbContext y Repositorio Genérico (Interfaces)**
   - **Responsable:** Francesco D'agostino
-  - **Capa:** Infrastructure / API
-  - *Descripción:* Crear el `ApplicationDbContext` heredando de EF Core. Configurar la inyección de dependencias en `Program.cs` de la API y agregar la `ConnectionString` en el `appsettings.json` local.
+  - **Capa:** Domain / Infrastructure / API
+  - *Descripción:* Crear `ApplicationDbContext`. Crear la interfaz `IRepository<T>` en Domain y su implementación `Repository<T>` en Infrastructure. Inyectar en `Program.cs`.
 
-- [x] **Tarjeta 3: Configuración de Entidades en Base de Datos**
+- [x] **Tarjeta 3: Configuración de Entidades con Fluent API**
   - **Responsable:** Facundo Nieva
   - **Capa:** Domain / Infrastructure
-  - *Descripción:* Escribir el mapeo con Fluent API para las entidades del diagrama corregido (`Usuario`, `Empresa`, `JornadaLaboral`, `Liquidacion`) definiendo claves primarias y foráneas.
+  - *Descripción:* Escribir mapeo de `Usuario`, `Empresa`, `JornadaLaboral`, `Liquidacion`. Definir PKs y FKs.
 
 - [x] **Tarjeta 4: Primera Migración Base**
   - **Responsable:** Danilo Mercado
   - **Capa:** Infrastructure / BD
-  - *Descripción:* Correr comandos `Add-Migration InitialCreate` y `Update-Database` para verificar que el motor de base de datos impacte el esquema local sin errores de relaciones.
+  - *Descripción:* Correr `Add-Migration InitialCreate` y `Update-Database` para impactar BD.
 
 ---
 
-## 🔒 ETAPA 2: Seguridad, Filtro Global y Autenticación (Días 4 a 6)
-*Objetivo: Lograr que el sistema reconozca los roles y aísle los datos por empresa automáticamente (Multitenancy).*
+## 🔒 ETAPA 2: Seguridad, Filtro Global y Módulo Empresas (Días 4 a 6)
+*Objetivo: Lógica de aislamiento multi-empresa, seguridad JWT y gestión inicial.*
 
-- [ ] **Tarjeta 5: Filtro Global de Multi-Empresa**
+- [ ] **Tarjeta 5: Filtro Global Multi-Empresa (Multitenancy)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** Infrastructure
-  - *Descripción:* Configurar `HasQueryFilter` en el DbContext sobre la entidad `JornadaLaboral` usando el `EmpresaId` del token para lograr el aislamiento estricto que pide el TIF.
+  - *Descripción:* Configurar `HasQueryFilter` en el DbContext para aislar datos por `EmpresaId`.
 
-- [ ] **Tarjeta 6: Servicio de Encriptación de Contraseñas**
+- [ ] **Tarjeta 6: Arquitectura de Autenticación (Módulo 6)**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Application / API
+  - *Descripción:* 1. Crear interfaz `IAuthService` en Application.
+    2. Crear clase `AuthService` (lógica de hash y generación JWT).
+    3. Crear `AuthController` en API con endpoints `/login`, `/recuperar-password` y `/mfa/verificar`.
+
+- [ ] **Tarjeta 7: Arquitectura Gestión de Empresas (Módulo 1)**
+  - **Responsable:** Francesco D'agostino
+  - **Capa:** Application / API
+  - *Descripción:* 1. Crear interfaz `IEmpresaService` en Application.
+    2. Crear clase `EmpresaService` (CRUD de empresas).
+    3. Crear `EmpresasController` en API (uso exclusivo SuperAdmin).
+
+---
+
+## ⏱️ ETAPA 3: Módulo Operarios y Fichajes (Días 7 a 9)
+*Objetivo: Carga de empleados, control de horas de operarios y validación.*
+
+- [ ] **Tarjeta 8: Arquitectura Gestión de Empleados (Módulo 2)**
   - **Responsable:** Facundo Nieva
+  - **Capa:** Application / API
+  - *Descripción:* 1. Crear interfaz `IUsuarioService` en Application.
+    2. Crear clase `UsuarioService` (Alta, baja, modificación y roles).
+    3. Crear `UsuariosController` en API (`/api/usuarios`).
+
+- [ ] **Tarjeta 9: Arquitectura Lógica de Jornadas (Módulo 3 - Reglas)**
+  - **Responsable:** Facundo Nieva
+  - **Capa:** Application
+  - *Descripción:* Crear interfaz `IJornadaService` y clase `JornadaService`. Programar validación de topes de horas e inmutabilidad si el estado es aprobado/rechazado.
+
+- [ ] **Tarjeta 10: Controladores de Jornadas (Módulo 3 - Endpoints)**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** API
+  - *Descripción:* Inyectar `IJornadaService` en un nuevo `JornadasController`. Crear endpoints para el Operario (`/cargar`, `/mis-horas`) y para el Admin (`/pendientes`, `/aprobar`, `/rechazar`).
+
+---
+
+## 💰 ETAPA 4: Liquidación, Reportes y Servicios de Terceros (Días 10 a 12)
+*Objetivo: Cierre mensual, consumo de APIs externas y salidas de archivos.*
+
+- [ ] **Tarjeta 11: Integración API Externa (HttpClientFactory)**
+  - **Responsable:** Francesco D'agostino
   - **Capa:** Infrastructure / Application
-  - *Descripción:* Crear el componente para hashear con sal las claves antes de registrarlas en la base de datos (seguridad básica).
+  - *Descripción:* Crear `IFeriadoService` y consumir la API de feriados de Argentina usando `HttpClientFactory` (Requisito Prog 4).
 
-- [ ] **Tarjeta 7: Generación de Tokens JWT**
+- [ ] **Tarjeta 12: Arquitectura de Liquidaciones (Módulo 4)**
   - **Responsable:** Danilo Mercado
-  - **Capa:** Application
-  - *Descripción:* Programar el servicio encargado de validar credenciales y emitir el token con los claims requeridos (`UsuarioId`, `Rol`, `EmpresaId`).
+  - **Capa:** Application / API
+  - *Descripción:* 1. Crear interfaz `ILiquidacionService` y `LiquidacionService` (algoritmo de cálculo cruzando horas y feriados).
+    2. Crear `LiquidacionesController` con endpoints `/simular` y `/cerrar-mes`.
 
-- [ ] **Tarjeta 8: Controladores de Acceso y Login**
-  - **Responsable:** Francesco D'agostino
-  - **Capa:** API
-  - *Descripción:* Crear `AuthController` con el endpoint `POST /api/auth/login`. Probar con Postman que devuelva el token y bloquee accesos no autorizados.
-
----
-
-## ⏱️ ETAPA 3: Lógica Operativa - Fichajes y Validaciones (Días 7 a 9)
-*Objetivo: Permitir la carga de horas de operarios y habilitar el panel de control del administrador.*
-
-- [ ] **Tarjeta 9: Servicio y Reglas de Jornada Laboral**
+- [ ] **Tarjeta 13: Arquitectura de Reportes (Módulo 5)**
   - **Responsable:** Facundo Nieva
-  - **Capa:** Application
-  - *Descripción:* Implementar la validación en `JornadaLaboralService`: rechazar si pasa el `TopeHorasDiarias` de la empresa. Aplicar inmutabilidad si el estado es aprobado/rechazado.
+  - **Capa:** Application / API
+  - *Descripción:* 1. Crear `IReporteService` y `ReporteService` (lógica de generación de PDF y Lote TXT).
+    2. Crear `ReportesController` con endpoints `/recibos/{id}` y `/banco/{id}`.
 
-- [ ] **Tarjeta 10: Controlador de Carga de Horas e Historial**
-  - **Responsable:** Danilo Mercado
-  - **Capa:** API
-  - *Descripción:* Crear `JornadasController` con endpoints `POST /api/jornadas` (fichaje del operario) y `GET /api/jornadas/historial` (filtra directo su historial personal).
-
-- [ ] **Tarjeta 11: Panel de Aprobación del Administrador**
+- [ ] **Tarjeta 14: Arquitectura Mantenimiento (Módulo 1)**
   - **Responsable:** Francesco D'agostino
-  - **Capa:** API / Application
-  - *Descripción:* Crear endpoint `PUT /api/jornadas/{id}/estado` para que el rol Administrador apruebe o rechace fichajes pendientes.
-
----
-
-## 💰 ETAPA 4: Motor de Liquidación y Terceros (Días 10 a 12)
-*Objetivo: Calcular la nómina mensual cruzando datos con servicios externos para asegurar la Promoción.*
-
-- [ ] **Tarjeta 12: Integración con API Externa de Feriados**
-  - **Responsable:** Francesco D'agostino
-  - **Capa:** API / Infrastructure
-  - *Descripción:* Implementar `HttpClientFactory` en la API para consultar dinámicamente un servicio público de feriados calendarios de Argentina.
-
-- [ ] **Tarjeta 13: Algoritmo de Cierre de Nómina**
-  - **Responsable:** Facundo Nieva
-  - **Capa:** Application
-  - *Descripción:* Programar el servicio de liquidación. Buscar jornadas aprobadas del mes, calcular salarios en base al `ValorHora` de la PYME y aplicar recargo de ley si la Tarjeta 12 detectó que el día era feriado.
-
-- [ ] **Tarjeta 14: Endpoint de Cierre Económico**
-  - **Responsable:** Danilo Mercado
-  - **Capa:** API
-  - *Descripción:* Crear `LiquidacionesController` con el endpoint `POST /api/liquidaciones/procesar` para persistir los totales netos calculados por empresa.
+  - **Capa:** Application / API
+  - *Descripción:* Crear `ISistemaService` y `SistemaController` para exponer el endpoint `POST /api/sistema/backup`.
 
 ---
 
@@ -99,15 +107,15 @@
 
 - [ ] **Tarjeta 15: Servidor de Datos en Azure**
   - **Responsable:** Facundo Nieva
-  - **Capa:** DevOps / Base de Datos
-  - *Descripción:* Levantar la base de datos relacional (SQL Server o MySQL) en Azure Cloud y correr las migraciones del proyecto para impactar las tablas en producción.
+  - **Capa:** DevOps / BD
+  - *Descripción:* Levantar SQL Server/MySQL en Azure Cloud y correr migraciones en producción.
 
 - [ ] **Tarjeta 16: Pipeline de Automatización (CI/CD)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** DevOps (GitHub Actions)
-  - *Descripción:* Escribir el flujo `.github/workflows/deploy.yml` para que compile y publique la API automáticamente en Azure ante cada push en la rama principal.
+  - *Descripción:* Escribir el workflow `.yml` para despliegue automático en Azure App Service al pushear en `main`.
 
-- [ ] **Tarjeta 17: Ajustes de Variables de Entorno en la Nube**
+- [ ] **Tarjeta 17: Variables de Entorno y Key Vault**
   - **Responsable:** Danilo Mercado
   - **Capa:** DevOps / API
-  - *Descripción:* Cargar el Secret del JWT y la Connection String real dentro de la configuración del Web API en Azure (ocultando los datos sensibles del código público).
+  - *Descripción:* Ocultar secrets (JWT Key, ConnectionString) usando las Variables de Entorno de Azure o Azure Key Vault.
