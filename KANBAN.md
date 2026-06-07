@@ -17,7 +17,7 @@
   - **Capa:** Infrastructure / API
   - *Descripción:* Crear el `ApplicationDbContext` heredando de EF Core. Configurar la inyección de dependencias en `Program.cs` de la API y agregar la `ConnectionString` en el `appsettings.json` local.
 
-- [ ] **Tarjeta 3: Configuración de Entidades en Base de Datos**
+- [x] **Tarjeta 3: Configuración de Entidades en Base de Datos**
   - **Responsable:** Facundo Nieva
   - **Capa:** Domain / Infrastructure
   - *Descripción:* Escribir el mapeo con Fluent API para las entidades del diagrama corregido (`Usuario`, `Empresa`, `JornadaLaboral`, `Liquidacion`) definiendo claves primarias y foráneas.
