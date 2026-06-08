@@ -44,7 +44,7 @@
     2. Crear clase `AuthService` (lógica de hash y generación JWT).
     3. Crear `AuthController` en API con endpoints `/login`, `/recuperar-password` y `/mfa/verificar`.
 
-- [ ] **Tarjeta 7: Arquitectura Gestión de Empresas (Módulo 1)**
+- [x] **Tarjeta 7: Arquitectura Gestión de Empresas (Módulo 1)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** Application / API
   - *Descripción:* 1. Crear interfaz `IEmpresaService` en Application.
