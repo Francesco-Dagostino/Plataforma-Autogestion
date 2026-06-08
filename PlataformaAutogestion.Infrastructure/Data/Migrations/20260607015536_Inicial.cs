@@ -158,11 +158,6 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                 oldType: "text");
 
             migrationBuilder.InsertData(
-                table: "Companys",
-                columns: new[] { "Id", "Cuit", "DateHigh", "Name", "ParameterSystem" },
-                values: new object[] { 1, 2030405060, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Mi Primera Empresa PYME", 1 });
-
-            migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "CreationDate", "Email", "IdCompany", "Name", "Password", "UserName", "role" },
                 values: new object[] { 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@empresa.com", 1, "Administrador Sistema", "hashed_password_placeholder", "admin", 0 });

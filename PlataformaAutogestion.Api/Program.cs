@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using PlataformaAutogestion.Application.Interfaces;
+using PlataformaAutogestion.Application.Services;
+using PlataformaAutogestion.Domain.Interfaces;
 using PlataformaAutogestion.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +17,14 @@ string connectionString = builder.Configuration.GetConnectionString("DefaultConn
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+
+#region Repositories
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+#endregion
+
+#region Services
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+#endregion
 
 var app = builder.Build();
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace PlataformaAutogestion.Domain.Entities
@@ -8,7 +9,9 @@ namespace PlataformaAutogestion.Domain.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public int Cuit {  get; set; }
+        [Required]
+        [Range(10000000000L, 99999999999L, ErrorMessage = "El CUIT debe tener 11 dígitos")]
+        public long Cuit { get; set; }
         public DateTime DateHigh { get; set; }
         public int ParameterSystem { get; set; }
 

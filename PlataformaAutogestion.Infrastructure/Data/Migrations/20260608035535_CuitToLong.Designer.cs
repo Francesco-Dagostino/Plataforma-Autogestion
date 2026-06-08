@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PlataformaAutogestion.Infrastructure.Data;
@@ -11,9 +12,11 @@ using PlataformaAutogestion.Infrastructure.Data;
 namespace PlataformaAutogestion.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608035535_CuitToLong")]
+    partial class CuitToLong
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,6 +50,16 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Companys", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Cuit = 2030405060L,
+                            DateHigh = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Mi Primera Empresa PYME",
+                            ParameterSystem = 1
+                        });
                 });
 
             modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.DetailLiquidation", b =>
@@ -149,6 +162,19 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                     b.HasIndex("IdCompany");
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreationDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@empresa.com",
+                            IdCompany = 1,
+                            Name = "Administrador Sistema",
+                            Password = "hashed_password_placeholder",
+                            UserName = "admin",
+                            role = 0
+                        });
                 });
 
             modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.Workday", b =>
