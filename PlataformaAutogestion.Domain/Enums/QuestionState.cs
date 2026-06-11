@@ -8,9 +8,9 @@ namespace PlataformaAutogestion.Domain.Enums
     {
         public enum Roles
         {
-            SuperAdmin,
+            Empleado,
             Admin,
-            Empleado
+            SuperAdmin
         }
 
         public enum StatusDay

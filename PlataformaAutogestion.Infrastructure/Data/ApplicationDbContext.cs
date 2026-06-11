@@ -106,11 +106,10 @@ namespace PlataformaAutogestion.Infrastructure.Data
                     .HasForeignKey(dl => dl.IdUser);
             });
 
-            /*
-             * las comiteo para no tener un id 1 ya creado en company
-            // modelBuilder.Entity<Company>().HasData(CreateCompanyDataSeed());
-            // modelBuilder.Entity<User>().HasData(CreateUserDataSeed());
-            */
+            
+             modelBuilder.Entity<Company>().HasData(CreateCompanyDataSeed());
+             modelBuilder.Entity<User>().HasData(CreateUserDataSeed());
+           
 
             foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {
@@ -127,13 +126,13 @@ namespace PlataformaAutogestion.Infrastructure.Data
             {
                 return new[]
                 {
-                    new Company { Id = 1, Name = "Empresa Testing S.A.", Cuit = 11111111, DateHigh = fechaAlta, ParameterSystem = 1 }
+                    new Company { Id = 1, Name = "Empresa Testing S.A.", Cuit = 111111111, DateHigh = fechaAlta, ParameterSystem = 1 }
                 };
             }
 
             return new[]
             {
-                new Company { Id = 1, Name = "Mi Primera Empresa PYME", Cuit = 2030405060, DateHigh = fechaAlta, ParameterSystem = 1 }
+                new Company { Id = 1, Name = "Mi Primera Empresa PYME", Cuit = 203040506079, DateHigh = fechaAlta, ParameterSystem = 1 }
             };
         }
 
