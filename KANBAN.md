@@ -56,7 +56,7 @@
 ## ⏱️ ETAPA 3: Módulo Operarios y Fichajes (Días 7 a 9)
 *Objetivo: Carga de empleados, control de horas de operarios y validación.*
 
-- [ ] **Tarjeta 8: Arquitectura Gestión de Empleados (Módulo 2)**
+- [x] **Tarjeta 8: Arquitectura Gestión de Empleados (Módulo 2)**
   - **Responsable:** Facundo Nieva
   - **Capa:** Application / API
   - *Descripción:* 1. Crear interfaz `IUsuarioService` en Application.
