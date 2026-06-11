@@ -15,107 +15,131 @@
 - [x] **Tarjeta 2: DbContext y Repositorio Genérico (Interfaces)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** Domain / Infrastructure / API
-  - *Descripción:* Crear `ApplicationDbContext`. Crear la interfaz `IRepository<T>` en Domain y su implementación `Repository<T>` en Infrastructure. Inyectar en `Program.cs`.
+  - *Descripción:* Crear `ApplicationDbContext`. Crear la interfaz `IBaseRepository<T>` en Domain y su implementación `BaseRepository<T>` en Infrastructure. Inyectar en `Program.cs`.
 
 - [x] **Tarjeta 3: Configuración de Entidades con Fluent API**
   - **Responsable:** Facundo Nieva
   - **Capa:** Domain / Infrastructure
-  - *Descripción:* Escribir mapeo de `Usuario`, `Empresa`, `JornadaLaboral`, `Liquidacion`. Definir PKs y FKs.
+  - *Descripción:* Escribir mapeo de `User`, `Company`, `Workday`, `Liquidation`, `DetailLiquidation`. Definir PKs, FKs y `DeleteBehavior.NoAction`.
 
 - [x] **Tarjeta 4: Primera Migración Base**
   - **Responsable:** Danilo Mercado
   - **Capa:** Infrastructure / BD
-  - *Descripción:* Correr `Add-Migration InitialCreate` y `Update-Database` para impactar BD.
+  - *Descripción:* Correr `Add-Migration InitialCreate` y `Update-Database` para impactar BD. Excluir `appsettings.json` de Git y crear `appsettings.Example.json`.
+
+- [x] **Tarjeta 5: Seed Data Inicial**
+  - **Responsable:** Francesco D'agostino
+  - **Capa:** Infrastructure / BD
+  - *Descripción:* Configurar `HasData` en `ApplicationDbContext` para empresa y usuario SuperAdmin iniciales. Correr migración `SeedData`.
 
 ---
 
-## 🔒 ETAPA 2: Seguridad, Filtro Global y Módulo Empresas (Días 4 a 6)
-*Objetivo: Lógica de aislamiento multi-empresa, seguridad JWT y gestión inicial.*
+## 🏢 ETAPA 2: Módulo Empresas y Empleados (Días 4 a 6)
+*Objetivo: CRUD completo de empresas y usuarios con sus validaciones.*
 
-- [ ] **Tarjeta 5: Filtro Global Multi-Empresa (Multitenancy)**
+- [x] **Tarjeta 6: Arquitectura Gestión de Empresas (Módulo 1)**
   - **Responsable:** Francesco D'agostino
-  - **Capa:** Infrastructure
-  - *Descripción:* Configurar `HasQueryFilter` en el DbContext para aislar datos por `EmpresaId`.
+  - **Capa:** Application / API
+  - *Descripción:* 1. Crear `ICompanyRepository` y `CompanyRepository`.
+    2. Crear interfaz `ICompanyService` en Application.
+    3. Crear `CompanyService` con DTOs (`CompanyDTO`, `CompanyCreateRequest`) y excepciones custom.
+    4. Crear `CompanyController` con CRUD completo.
 
-- [ ] **Tarjeta 6: Arquitectura de Autenticación (Módulo 6)**
+- [x] **Tarjeta 7: Arquitectura Gestión de Empleados (Módulo 2)**
+  - **Responsable:** Facundo Nieva
+  - **Capa:** Application / API
+  - *Descripción:* 1. Crear `IUserRepository` y `UserRepository` con métodos `GetAllByCompanyAsync`, `GetByEmailAsync`, `GetByUserNameAsync`.
+    2. Crear interfaz `IUserService` en Application.
+    3. Crear `UserService` con DTOs (`UserDTO`, `UserCreateRequest`). Rol siempre `Empleado` al crear.
+    4. Crear `UserController` con CRUD completo y endpoint `GET /company/{companyId}`.
+
+- [x] **Tarjeta 8: Serialización de Enums como String**
+  - **Responsable:** Francesco D'agostino
+  - **Capa:** API
+  - *Descripción:* Configurar `JsonStringEnumConverter` en `Program.cs` para que `Roles` y `StatusDay` se serialicen como string en toda la API.
+
+---
+
+## 🔒 ETAPA 3: Seguridad y Filtro Multi-Empresa (Días 7 a 9)
+*Objetivo: Autenticación JWT, autorización por roles y aislamiento de datos por empresa.*
+
+- [ ] **Tarjeta 9: Arquitectura de Autenticación (Módulo 6)**
   - **Responsable:** Danilo Mercado
   - **Capa:** Application / API
   - *Descripción:* 1. Crear interfaz `IAuthService` en Application.
-    2. Crear clase `AuthService` (lógica de hash y generación JWT).
-    3. Crear `AuthController` en API con endpoints `/login`, `/recuperar-password` y `/mfa/verificar`.
+    2. Crear `AuthService` con lógica de verificación de credenciales y generación de JWT.
+    3. Crear `AuthController` con endpoints `POST /api/auth/login` y `POST /api/auth/recuperar-password`.
+    4. Registrar JWT en `Program.cs` con `AddAuthentication` y `AddJwtBearer`.
 
-- [x] **Tarjeta 7: Arquitectura Gestión de Empresas (Módulo 1)**
+- [ ] **Tarjeta 10: Middleware de Autorización por Roles**
   - **Responsable:** Francesco D'agostino
-  - **Capa:** Application / API
-  - *Descripción:* 1. Crear interfaz `IEmpresaService` en Application.
-    2. Crear clase `EmpresaService` (CRUD de empresas).
-    3. Crear `EmpresasController` en API (uso exclusivo SuperAdmin).
+  - **Capa:** API
+  - *Descripción:* Agregar `[Authorize]` y `[Authorize(Roles = "...")]` en controllers según corresponda. `CompanyController` solo SuperAdmin. `UserController` solo Admin. Agregar `app.UseAuthentication()` en `Program.cs`.
+
+- [ ] **Tarjeta 11: Filtro Global Multi-Empresa (Multitenancy)**
+  - **Responsable:** Francesco D'agostino
+  - **Capa:** Infrastructure
+  - *Descripción:* Inyectar `IHttpContextAccessor` en `ApplicationDbContext`. Configurar `HasQueryFilter` en `User`, `Workday`, `Liquidation` y `DetailLiquidation` para filtrar automáticamente por `IdCompany` del token JWT.
 
 ---
 
-## ⏱️ ETAPA 3: Módulo Operarios y Fichajes (Días 7 a 9)
-*Objetivo: Carga de empleados, control de horas de operarios y validación.*
+## ⏱️ ETAPA 4: Módulo Jornadas (Días 10 a 11)
+*Objetivo: Carga de horas por operarios, validación de topes y aprobación por admin.*
 
-- [x] **Tarjeta 8: Arquitectura Gestión de Empleados (Módulo 2)**
-  - **Responsable:** Facundo Nieva
-  - **Capa:** Application / API
-  - *Descripción:* 1. Crear interfaz `IUsuarioService` en Application.
-    2. Crear clase `UsuarioService` (Alta, baja, modificación y roles).
-    3. Crear `UsuariosController` en API (`/api/usuarios`).
-
-- [ ] **Tarjeta 9: Arquitectura Lógica de Jornadas (Módulo 3 - Reglas)**
+- [ ] **Tarjeta 12: Arquitectura Lógica de Jornadas (Módulo 3 - Reglas)**
   - **Responsable:** Facundo Nieva
   - **Capa:** Application
-  - *Descripción:* Crear interfaz `IJornadaService` y clase `JornadaService`. Programar validación de topes de horas e inmutabilidad si el estado es aprobado/rechazado.
+  - *Descripción:* Crear `IWorkdayRepository` y `WorkdayRepository`. Crear interfaz `IWorkdayService` y `WorkdayService`. Validar tope de horas diarias contra `ParameterSystem` de la empresa. Inmutabilidad si estado es `Aprobada` o `Desaprobada`.
 
-- [ ] **Tarjeta 10: Controladores de Jornadas (Módulo 3 - Endpoints)**
+- [ ] **Tarjeta 13: Controladores de Jornadas (Módulo 3 - Endpoints)**
   - **Responsable:** Danilo Mercado
   - **Capa:** API
-  - *Descripción:* Inyectar `IJornadaService` en un nuevo `JornadasController`. Crear endpoints para el Operario (`/cargar`, `/mis-horas`) y para el Admin (`/pendientes`, `/aprobar`, `/rechazar`).
+  - *Descripción:* Crear `WorkdayController`. Endpoints para Operario: `POST /api/workday/cargar`, `GET /api/workday/mis-horas`. Endpoints para Admin: `GET /api/workday/pendientes`, `PUT /api/workday/aprobar/{id}`, `PUT /api/workday/rechazar/{id}`.
 
 ---
 
-## 💰 ETAPA 4: Liquidación, Reportes y Servicios de Terceros (Días 10 a 12)
-*Objetivo: Cierre mensual, consumo de APIs externas y salidas de archivos.*
+## 💰 ETAPA 5: Liquidación, Reportes y Servicios Externos (Días 12 a 13)
+*Objetivo: Cierre mensual, consumo de API externa y generación de archivos.*
 
-- [ ] **Tarjeta 11: Integración API Externa (HttpClientFactory)**
+- [ ] **Tarjeta 14: Integración API Externa de Feriados (HttpClientFactory)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** Infrastructure / Application
-  - *Descripción:* Crear `IFeriadoService` y consumir la API de feriados de Argentina usando `HttpClientFactory` (Requisito Prog 4).
+  - *Descripción:* Crear `IFeriadoService` en Application. Implementar en Infrastructure consumiendo la API pública de feriados de Argentina con `HttpClientFactory`. Registrar en `Program.cs`.
 
-- [ ] **Tarjeta 12: Arquitectura de Liquidaciones (Módulo 4)**
+- [ ] **Tarjeta 15: Arquitectura de Liquidaciones (Módulo 4)**
   - **Responsable:** Danilo Mercado
   - **Capa:** Application / API
-  - *Descripción:* 1. Crear interfaz `ILiquidacionService` y `LiquidacionService` (algoritmo de cálculo cruzando horas y feriados).
-    2. Crear `LiquidacionesController` con endpoints `/simular` y `/cerrar-mes`.
+  - *Descripción:* 1. Crear `ILiquidationRepository` y `LiquidationRepository`.
+    2. Crear `ILiquidationService` y `LiquidationService` con algoritmo de cálculo cruzando horas trabajadas, valor hora y feriados.
+    3. Crear `LiquidationController` con endpoints `POST /api/liquidation/simular` y `POST /api/liquidation/cerrar-mes`.
 
-- [ ] **Tarjeta 13: Arquitectura de Reportes (Módulo 5)**
+- [ ] **Tarjeta 16: Arquitectura de Reportes (Módulo 5)**
   - **Responsable:** Facundo Nieva
   - **Capa:** Application / API
-  - *Descripción:* 1. Crear `IReporteService` y `ReporteService` (lógica de generación de PDF y Lote TXT).
-    2. Crear `ReportesController` con endpoints `/recibos/{id}` y `/banco/{id}`.
+  - *Descripción:* 1. Crear `IReporteService` y `ReporteService` (generación de PDF y archivo TXT de lote bancario).
+    2. Crear `ReportesController` con endpoints `GET /api/reportes/recibos/{id}` y `GET /api/reportes/banco/{id}`.
 
-- [ ] **Tarjeta 14: Arquitectura Mantenimiento (Módulo 1)**
+- [ ] **Tarjeta 17: Arquitectura Mantenimiento (Módulo 1)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** Application / API
-  - *Descripción:* Crear `ISistemaService` y `SistemaController` para exponer el endpoint `POST /api/sistema/backup`.
+  - *Descripción:* Crear `ISistemaService` y `SistemaController` con endpoint `POST /api/sistema/backup`.
 
 ---
 
-## 🚀 ETAPA 5: Deploy y Puesta en Producción (Días 13 a 14)
+## 🚀 ETAPA 6: Deploy y Puesta en Producción (Día 14)
 *Objetivo: Dejar la API en internet lista para la defensa oral ante los profesores.*
 
-- [ ] **Tarjeta 15: Servidor de Datos en Azure**
+- [ ] **Tarjeta 18: Servidor de Datos en Azure**
   - **Responsable:** Facundo Nieva
   - **Capa:** DevOps / BD
-  - *Descripción:* Levantar SQL Server/MySQL en Azure Cloud y correr migraciones en producción.
+  - *Descripción:* Levantar PostgreSQL en Azure y correr migraciones en producción.
 
-- [ ] **Tarjeta 16: Pipeline de Automatización (CI/CD)**
+- [ ] **Tarjeta 19: Variables de Entorno y Key Vault**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** DevOps / API
+  - *Descripción:* Ocultar secrets (JWT Key, ConnectionString) usando Variables de Entorno de Azure o Azure Key Vault.
+
+- [ ] **Tarjeta 20: Pipeline de Automatización (CI/CD)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** DevOps (GitHub Actions)
   - *Descripción:* Escribir el workflow `.yml` para despliegue automático en Azure App Service al pushear en `main`.
-
-- [ ] **Tarjeta 17: Variables de Entorno y Key Vault**
-  - **Responsable:** Danilo Mercado
-  - **Capa:** DevOps / API
-  - *Descripción:* Ocultar secrets (JWT Key, ConnectionString) usando las Variables de Entorno de Azure o Azure Key Vault.
