@@ -81,6 +81,7 @@ builder.Services.AddAuthentication("Bearer")
 #region Repositories
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IWorkdayRepository, WorkdayRepository>();
 #endregion
 
 #region Services
@@ -91,6 +92,7 @@ builder.Services.Configure<AuthServiceOptions>(
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IWorkdayService, WorkdayService>();
 #endregion
 
 var app = builder.Build();
