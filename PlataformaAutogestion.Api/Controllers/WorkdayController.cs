@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models.Request;
@@ -17,6 +18,7 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
         // Operario: ver sus propias jornadas
+        [Authorize]
         [HttpGet("mis-horas/{userId}")]
         public async Task<IActionResult> GetByUser(int userId)
         {
@@ -25,6 +27,7 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
         // Admin: ver jornadas pendientes de su empresa
+        [Authorize(Roles = "Admin")]
         [HttpGet("pendientes/{companyId}")]
         public async Task<IActionResult> GetPending(int companyId)
         {
@@ -33,6 +36,7 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
         // Operario: cargar jornada
+        [Authorize]
         [HttpPost("cargar")]
         public async Task<IActionResult> Add(WorkdayCreateRequest request)
         {
@@ -52,6 +56,7 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
         // Admin: aprobar jornada
+        [Authorize(Roles = "Admin")]
         [HttpPut("aprobar/{id}")]
         public async Task<IActionResult> Approve(string id)
         {
@@ -71,6 +76,7 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
         // Admin: rechazar jornada
+        [Authorize(Roles = "Admin")]
         [HttpPut("rechazar/{id}")]
         public async Task<IActionResult> Reject(string id)
         {

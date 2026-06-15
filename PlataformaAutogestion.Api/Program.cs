@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
+using PlataformaAutogestion.Api.Middleware;
 using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Services;
 using PlataformaAutogestion.Domain.Interfaces;
@@ -102,6 +103,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 

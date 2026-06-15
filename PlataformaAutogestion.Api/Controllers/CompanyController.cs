@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models.Requests;
@@ -17,6 +18,7 @@ namespace PlataformaAutogestion.Api.Controllers
             _service = service;
         }
 
+        [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -25,6 +27,7 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
 
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CompanyCreateRequest dto)
         {
@@ -32,6 +35,7 @@ namespace PlataformaAutogestion.Api.Controllers
             return Ok(company);
         }
 
+        [Authorize(Roles = "SuperAdmin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -46,6 +50,7 @@ namespace PlataformaAutogestion.Api.Controllers
             }
         }
 
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] CompanyCreateRequest dto)
         {
@@ -60,6 +65,7 @@ namespace PlataformaAutogestion.Api.Controllers
             }
         }
 
+        [Authorize(Roles = "SuperAdmin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
