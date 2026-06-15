@@ -63,7 +63,7 @@
 ## 🔒 ETAPA 3: Seguridad y Filtro Multi-Empresa (Días 7 a 9)
 *Objetivo: Autenticación JWT, autorización por roles y aislamiento de datos por empresa.*
 
-- [ ] **Tarjeta 9: Arquitectura de Autenticación (Módulo 6)**
+- [x] **Tarjeta 9: Arquitectura de Autenticación (Módulo 6)**
   - **Responsable:** Danilo Mercado
   - **Capa:** Application / API
   - *Descripción:* 1. Crear interfaz `IAuthService` en Application.
