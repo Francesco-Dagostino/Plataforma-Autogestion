@@ -71,7 +71,7 @@
     3. Crear `AuthController` con endpoints `POST /api/auth/login` y `POST /api/auth/recuperar-password`.
     4. Registrar JWT en `Program.cs` con `AddAuthentication` y `AddJwtBearer`.
 
-- [ ] **Tarjeta 10: Middleware de Autorización por Roles**
+- [x] **Tarjeta 10: Middleware de Autorización por Roles**
   - **Responsable:** Francesco D'agostino
   - **Capa:** API
   - *Descripción:* Agregar `[Authorize]` y `[Authorize(Roles = "...")]` en controllers según corresponda. `CompanyController` solo SuperAdmin. `UserController` solo Admin. Agregar `app.UseAuthentication()` en `Program.cs`.
@@ -86,12 +86,12 @@
 ## ⏱️ ETAPA 4: Módulo Jornadas (Días 10 a 11)
 *Objetivo: Carga de horas por operarios, validación de topes y aprobación por admin.*
 
-- [ ] **Tarjeta 12: Arquitectura Lógica de Jornadas (Módulo 3 - Reglas)**
+- [x] **Tarjeta 12: Arquitectura Lógica de Jornadas (Módulo 3 - Reglas)**
   - **Responsable:** Facundo Nieva
   - **Capa:** Application
   - *Descripción:* Crear `IWorkdayRepository` y `WorkdayRepository`. Crear interfaz `IWorkdayService` y `WorkdayService`. Validar tope de horas diarias contra `ParameterSystem` de la empresa. Inmutabilidad si estado es `Aprobada` o `Desaprobada`.
 
-- [ ] **Tarjeta 13: Controladores de Jornadas (Módulo 3 - Endpoints)**
+- [x] **Tarjeta 13: Controladores de Jornadas (Módulo 3 - Endpoints)**
   - **Responsable:** Danilo Mercado
   - **Capa:** API
   - *Descripción:* Crear `WorkdayController`. Endpoints para Operario: `POST /api/workday/cargar`, `GET /api/workday/mis-horas`. Endpoints para Admin: `GET /api/workday/pendientes`, `PUT /api/workday/aprobar/{id}`, `PUT /api/workday/rechazar/{id}`.
