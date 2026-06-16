@@ -14,6 +14,7 @@ namespace PlataformaAutogestion.Application.Models
         public DateTime? DateApproval { get; set; }
         public StatusDay Estado { get; set; }
         public int IdUser { get; set; }
+        public string UserName { get; set; }
         public int IdCompany { get; set; }
 
         public static WorkdayDTO FromEntity(Workday w) => new WorkdayDTO
@@ -24,6 +25,7 @@ namespace PlataformaAutogestion.Application.Models
             DateApproval = w.DateApproval,
             Estado = w.Estado,
             IdUser = w.IdUser,
+            UserName = w.Usuario?.Name ?? "",
             IdCompany = w.IdCompany
         };
     }
