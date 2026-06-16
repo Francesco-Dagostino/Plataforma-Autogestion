@@ -10,7 +10,7 @@ namespace PlataformaAutogestion.Application.Interfaces
     {
         Task<List<WorkdayDTO>> GetByUserAsync(int userId);
         Task<List<WorkdayDTO>> GetPendingByCompanyAsync(int companyId);
-        Task<WorkdayDTO> AddAsync(WorkdayCreateRequest request);
+        Task<WorkdayDTO> AddAsync(WorkdayCreateRequest request, int userId);
         Task ApproveAsync(string id);
         Task RejectAsync(string id);
     }

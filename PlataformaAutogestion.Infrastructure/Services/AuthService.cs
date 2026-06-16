@@ -45,7 +45,8 @@ namespace PlataformaAutogestion.Infrastructure.Services
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.role.ToString())
+                new Claim(ClaimTypes.Role, user.role.ToString()),
+                new Claim("IdCompany", user.IdCompany.ToString())
             };
 
             var token = new JwtSecurityToken(
