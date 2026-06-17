@@ -85,6 +85,25 @@ builder.Services.AddScoped<IWorkdayRepository, WorkdayRepository>();
 builder.Services.Configure<AuthServiceOptions>(
     builder.Configuration.GetSection(
         AuthServiceOptions.AutenticacionService));
+// Tarjeta 14 de api :v
+builder.Services.AddHttpClient<IHolidayService, HolidayService>(client =>
+{
+    var holidayApiConfig = builder.Configuration.GetSection("HolidayApi");
+
+    client.BaseAddress = new Uri(
+        holidayApiConfig["BaseUrl"]!);
+
+    client.Timeout = TimeSpan.FromSeconds(
+        int.Parse(holidayApiConfig["TimeoutSeconds"]!));
+
+    client.DefaultRequestHeaders.Add(
+        "User-Agent",
+        "PlataformaAutogestion");
+
+    client.DefaultRequestHeaders.Add(
+        "Accept",
+        "application/json");
+});
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
