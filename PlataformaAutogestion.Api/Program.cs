@@ -15,6 +15,11 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- CAMBIO PARA TARJETA 11 ---
+// Registramos el servicio necesario para que el DbContext acceda al HttpContext
+builder.Services.AddHttpContextAccessor();
+// ------------------------------
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -23,7 +28,6 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen(setupAction =>
 {
     setupAction.AddSecurityDefinition("PlataformaAutogestionBearerAuth",
@@ -51,8 +55,7 @@ builder.Services.AddSwaggerGen(setupAction =>
         });
 });
 
-string connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection")!;
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -65,17 +68,10 @@ builder.Services.AddAuthentication("Bearer")
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
-
-            ValidIssuer =
-                builder.Configuration["AutenticacionService:Issuer"],
-
-            ValidAudience =
-                builder.Configuration["AutenticacionService:Audience"],
-
-            IssuerSigningKey =
-                new SymmetricSecurityKey(
-                    Encoding.ASCII.GetBytes(
-                        builder.Configuration["AutenticacionService:SecretForKey"]!))
+            ValidIssuer = builder.Configuration["AutenticacionService:Issuer"],
+            ValidAudience = builder.Configuration["AutenticacionService:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.ASCII.GetBytes(builder.Configuration["AutenticacionService:SecretForKey"]!))
         };
     });
 
@@ -89,7 +85,6 @@ builder.Services.AddScoped<IWorkdayRepository, WorkdayRepository>();
 builder.Services.Configure<AuthServiceOptions>(
     builder.Configuration.GetSection(
         AuthServiceOptions.AutenticacionService));
-
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -105,12 +100,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionMiddleware>();
-
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

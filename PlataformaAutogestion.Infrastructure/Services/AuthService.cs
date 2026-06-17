@@ -25,7 +25,9 @@ namespace PlataformaAutogestion.Infrastructure.Services
 
         public async Task<string> LoginAsync(string userName, string password)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x =>
+            var user = await _context.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x =>
                 x.UserName == userName &&
                 x.Password == password);
 
@@ -45,7 +47,8 @@ namespace PlataformaAutogestion.Infrastructure.Services
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.role.ToString())
+                new Claim(ClaimTypes.Role, user.role.ToString()),
+                new Claim("IdCompany", user.IdCompany.ToString()),
             };
 
             var token = new JwtSecurityToken(
