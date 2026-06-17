@@ -76,7 +76,7 @@
   - **Capa:** API
   - *Descripción:* Agregar `[Authorize]` y `[Authorize(Roles = "...")]` en controllers según corresponda. `CompanyController` solo SuperAdmin. `UserController` solo Admin. Agregar `app.UseAuthentication()` en `Program.cs`.
 
-- [ ] **Tarjeta 11: Filtro Global Multi-Empresa (Multitenancy)**
+- [x] **Tarjeta 11: Filtro Global Multi-Empresa (Multitenancy)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** Infrastructure
   - *Descripción:* Inyectar `IHttpContextAccessor` en `ApplicationDbContext`. Configurar `HasQueryFilter` en `User`, `Workday`, `Liquidation` y `DetailLiquidation` para filtrar automáticamente por `IdCompany` del token JWT.
