@@ -11,9 +11,5 @@ namespace PlataformaAutogestion.Application.Models.Request
         public int HoursWorked { get; set; }
         [Required]
         public DateTime DateEntry { get; set; }
-        [Required]
-        public int IdUser { get; set; }
-        [Required]
-        public int IdCompany { get; set; }
     }
 }

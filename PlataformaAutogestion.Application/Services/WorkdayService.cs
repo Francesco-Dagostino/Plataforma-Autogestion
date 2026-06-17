@@ -36,13 +36,13 @@ namespace PlataformaAutogestion.Application.Services
             return workdays.Select(WorkdayDTO.FromEntity).ToList();
         }
 
-        public async Task<WorkdayDTO> AddAsync(WorkdayCreateRequest request)
+        public async Task<WorkdayDTO> AddAsync(WorkdayCreateRequest request, int userId)
         {
-            var company = await _companyRepository.GetByIdAsync(request.IdCompany)
-                ?? throw new EntityNotFoundException("Company", request.IdCompany);
+            var user = await _userRepository.GetByIdAsync(userId)
+                ?? throw new EntityNotFoundException("User", userId);
 
-            var user = await _userRepository.GetByIdAsync(request.IdUser)
-                ?? throw new EntityNotFoundException("User", request.IdUser);
+            var company = await _companyRepository.GetByIdAsync(user.IdCompany)
+                ?? throw new EntityNotFoundException("Company", user.IdCompany);
 
             var workday = new Workday
             {
@@ -51,8 +51,8 @@ namespace PlataformaAutogestion.Application.Services
                 DateEntry = request.DateEntry,
                 DateApproval = null,
                 Estado = StatusDay.Pendiente,
-                IdUser = request.IdUser,
-                IdCompany = request.IdCompany
+                IdUser = userId,
+                IdCompany = user.IdCompany
             };
 
             await _workdayRepository.AddAsync(workday);

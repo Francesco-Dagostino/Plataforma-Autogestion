@@ -34,6 +34,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
         public async Task<List<Workday>> GetPendingByCompanyAsync(int companyId)
         {
             return await _context.Workdays
+                .Include(w => w.Usuario)
                 .Where(w => w.IdCompany == companyId && w.Estado == StatusDay.Pendiente)
                 .ToListAsync();
         }
