@@ -25,7 +25,9 @@ namespace PlataformaAutogestion.Infrastructure.Services
 
         public async Task<string> LoginAsync(string userName, string password)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x =>
+            var user = await _context.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x =>
                 x.UserName == userName &&
                 x.Password == password);
 

@@ -156,11 +156,12 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
-
+            
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "CreationDate", "Email", "IdCompany", "Name", "Password", "UserName", "role" },
                 values: new object[] { 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@empresa.com", 1, "Administrador Sistema", "hashed_password_placeholder", "admin", 0 });
+            
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workdays_IdCompany",
