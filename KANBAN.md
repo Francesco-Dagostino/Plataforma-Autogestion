@@ -129,17 +129,27 @@
 ## 🚀 ETAPA 6: Deploy y Puesta en Producción (Día 14)
 *Objetivo: Dejar la API en internet lista para la defensa oral ante los profesores.*
 
-- [ ] **Tarjeta 18: Servidor de Datos en Azure**
+- [ ] **Tarjeta 18: Provisión de Infraestructura Base en Azure**
+  - **Responsable:** Facundo Nieva
+  - **Capa:** DevOps
+  - *Descripción:* Crear el Resource Group dedicado al TP. Dentro de él, crear el App Service Plan y el App Service (Web App) que va a hostear la API. Este recurso es el destino del deploy de la Tarjeta 20.
+
+- [ ] **Tarjeta 19: Base de Datos en Azure**
   - **Responsable:** Facundo Nieva
   - **Capa:** DevOps / BD
-  - *Descripción:* Levantar PostgreSQL en Azure y correr migraciones en producción.
+  - *Descripción:* Levantar Azure Database for PostgreSQL (Flexible Server) dentro del mismo Resource Group de la Tarjeta 17. Correr las migraciones de EF Core contra la instancia de producción (`dotnet ef database update` con la connection string de Azure).
 
-- [ ] **Tarjeta 19: Variables de Entorno y Key Vault**
+- [ ] **Tarjeta 20: Variables de Entorno y Key Vault**
   - **Responsable:** Danilo Mercado
   - **Capa:** DevOps / API
-  - *Descripción:* Ocultar secrets (JWT Key, ConnectionString) usando Variables de Entorno de Azure o Azure Key Vault.
+  - *Descripción:* Configurar como Application Settings del App Service: la `ConnectionString` de la base de la Tarjeta 18 y la `Jwt:Key`. Idealmente, alojar la `Jwt:Key` en un Azure Key Vault y referenciarla desde el App Service (Key Vault reference). Como mínimo aceptable, variable de entorno directa en el App Service.
 
-- [ ] **Tarjeta 20: Pipeline de Automatización (CI/CD)**
+- [ ] **Tarjeta 21: Pipeline de Automatización (CI/CD)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** DevOps (GitHub Actions)
-  - *Descripción:* Escribir el workflow `.yml` para despliegue automático en Azure App Service al pushear en `main`.
+  - *Descripción:* Escribir el workflow `.yml` que, al pushear a `main`, compile el proyecto, publique el artefacto y lo despliegue al App Service de la Tarjeta 17 (vía `azure/webapps-deploy` con publish profile, o `az webapp deploy` con Service Principal). Credenciales como GitHub Secrets. Confirmar al menos una corrida en verde en la pestaña Actions.
+
+- [ ] **Tarjeta 22: Validación End-to-End en Producción**
+  - **Responsable:** Equipo completo
+  - **Capa:** QA
+  - *Descripción:* Probar contra la URL pública de Azure: login y generación de JWT, Swagger accesible, CRUD de Workday/Liquidation funcionando contra la base real, y que el consumo de la API de feriados (HolidayService) responda correctamente. Confirmar que el HttpClient de HolidayService está registrado vía `AddHttpClient` en `Program.cs` (HttpClientFactory), no instanciado manualmente..
