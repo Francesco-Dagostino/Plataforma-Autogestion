@@ -101,7 +101,7 @@
 ## 💰 ETAPA 5: Liquidación, Reportes y Servicios Externos (Días 12 a 13)
 *Objetivo: Cierre mensual, consumo de API externa y generación de archivos.*
 
-- [ ] **Tarjeta 14: Integración API Externa de Feriados (HttpClientFactory)**
+- [x] **Tarjeta 14: Integración API Externa de Feriados (HttpClientFactory)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** Infrastructure / Application
   - *Descripción:* Crear `IFeriadoService` en Application. Implementar en Infrastructure consumiendo la API pública de feriados de Argentina con `HttpClientFactory`. Registrar en `Program.cs`.
