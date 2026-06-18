@@ -33,10 +33,7 @@ namespace PlataformaAutogestion.Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<SimulacionEmpleadoResponse> SimularSueldoEmpleadoAsync(
-            int userId,
-            int month,
-            int year)
+        public async Task<SimulacionEmpleadoResponse> SimularSueldoEmpleadoAsync( int userId,int month,int year)
         {
             if (month < 1 || month > 12)
                 throw new InvalidOperationException("Mes inválido.");
@@ -87,68 +84,52 @@ namespace PlataformaAutogestion.Application.Services
             };
         }
 
-        public async Task<Liquidation> SimularLiquidacionAsync(LiquidationRequest request)
+        public async Task<Liquidation> SimularLiquidacionAsync(int companyId, LiquidationRequest request)
         {
-            return await GenerarLiquidacionCoreAsync(request, false);
+            return await GenerarLiquidacionCoreAsync(companyId, request, false);
         }
 
-        public async Task<Liquidation> CerrarMesAsync(LiquidationRequest request)
+        public async Task<Liquidation> CerrarMesAsync(int companyId, LiquidationRequest request)
         {
-            if (await _liquidationRepository.ExistsLiquidationForPeriodAsync(
-                request.CompanyId,
-                request.Month,
-                request.Year))
-            {
-                throw new InvalidOperationException(
-                    "Ya existe una liquidación cerrada para este período.");
-            }
+            if (await _liquidationRepository.ExistsLiquidationForPeriodAsync(companyId, request.Month, request.Year))
+                throw new InvalidOperationException("Ya existe una liquidación cerrada para este período.");
 
-            return await GenerarLiquidacionCoreAsync(request, true);
+            return await GenerarLiquidacionCoreAsync(companyId, request, true);
         }
 
-        private async Task<Liquidation> GenerarLiquidacionCoreAsync(
-            LiquidationRequest request,
-            bool guardarEnBd)
+        private async Task<Liquidation> GenerarLiquidacionCoreAsync(int companyId, LiquidationRequest request, bool guardarEnBd)
         {
             if (request.Month < 1 || request.Month > 12)
                 throw new InvalidOperationException("Mes inválido.");
 
-            var company = await _companyRepository.GetByIdAsync(request.CompanyId)
-                ?? throw new EntityNotFoundException("Company", request.CompanyId);
+            var company = await _companyRepository.GetByIdAsync(companyId)
+                ?? throw new EntityNotFoundException("Company", companyId);
 
             decimal valorHoraEmpresa = company.ParameterSystem;
 
             if (valorHoraEmpresa <= 0)
-                throw new InvalidOperationException(
-                    "La empresa no tiene configurado un valor hora válido.");
+                throw new InvalidOperationException("La empresa no tiene configurado un valor hora válido.");
 
-            var allWorkdays = await _workdayRepository
-                .GetAllByCompanyAsync(request.CompanyId);
+            var allWorkdays = await _workdayRepository.GetAllByCompanyAsync(companyId);
 
             var jornadasDelMes = allWorkdays
-                .Where(w =>
-                    w.Estado == StatusDay.Aprobada &&
-                    w.DateEntry.Month == request.Month &&
-                    w.DateEntry.Year == request.Year)
+                .Where(w => w.Estado == StatusDay.Aprobada
+                         && w.DateEntry.Month == request.Month
+                         && w.DateEntry.Year == request.Year)
                 .ToList();
 
             if (!jornadasDelMes.Any())
-                throw new InvalidOperationException(
-                    "No hay jornadas aprobadas para liquidar.");
+                throw new InvalidOperationException("No hay jornadas aprobadas para liquidar.");
 
             var liquidation = new Liquidation
             {
-                LiquidationDate = new DateTime(
-                    request.Year,
-                    request.Month,
-                    DateTime.DaysInMonth(request.Year, request.Month)),
-                IdCompany = request.CompanyId,
+                LiquidationDate = new DateTime(request.Year, request.Month, DateTime.DaysInMonth(request.Year, request.Month)),
+                IdCompany = companyId,
                 IsClosed = guardarEnBd,
                 detailLiquidations = new()
             };
 
             decimal totalLiquidacionEmpresa = 0;
-
             var jornadasPorUsuario = jornadasDelMes.GroupBy(w => w.IdUser);
 
             foreach (var group in jornadasPorUsuario)
@@ -159,13 +140,10 @@ namespace PlataformaAutogestion.Application.Services
                 foreach (var jornada in group)
                 {
                     totalHorasUsuario += jornada.HoursWorked;
-
                     decimal valorHoraAplicado = valorHoraEmpresa;
 
                     if (await _holidayService.IsHolidayAsync(jornada.DateEntry))
-                    {
                         valorHoraAplicado *= 2;
-                    }
 
                     montoTotalUsuario += jornada.HoursWorked * valorHoraAplicado;
                 }
@@ -173,7 +151,7 @@ namespace PlataformaAutogestion.Application.Services
                 liquidation.detailLiquidations.Add(new DetailLiquidation
                 {
                     IdUser = group.Key,
-                    IdCompany = request.CompanyId,
+                    IdCompany = companyId,
                     TotalHours = totalHorasUsuario,
                     Amount = montoTotalUsuario
                 });
@@ -184,12 +162,11 @@ namespace PlataformaAutogestion.Application.Services
             liquidation.Total = totalLiquidacionEmpresa;
 
             if (guardarEnBd)
-            {
                 await _liquidationRepository.AddAsync(liquidation);
-            }
 
             return liquidation;
         }
+
         public async Task<LiquidacionCierreResponse> GetCierreMesAsync(int companyId, int month, int year)
         {
             var liquidacion = await _liquidationRepository.GetByPeriodAsync(companyId, month, year)

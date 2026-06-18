@@ -7,10 +7,9 @@ namespace PlataformaAutogestion.Application.Interfaces
 {
     public interface ILiquidationService
     {
-        Task<Liquidation> SimularLiquidacionAsync(LiquidationRequest request);
-        Task<Liquidation> CerrarMesAsync(LiquidationRequest request);
+        Task<Liquidation> SimularLiquidacionAsync(int companyId, LiquidationRequest request);
+        Task<Liquidation> CerrarMesAsync(int companyId, LiquidationRequest request);
         Task<SimulacionEmpleadoResponse> SimularSueldoEmpleadoAsync(int userId, int month, int year);
         Task<LiquidacionCierreResponse> GetCierreMesAsync(int companyId, int month, int year);
-
     }
 }
