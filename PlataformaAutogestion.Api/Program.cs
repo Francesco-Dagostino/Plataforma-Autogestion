@@ -15,10 +15,8 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- CAMBIO PARA TARJETA 11 ---
 // Registramos el servicio necesario para que el DbContext acceda al HttpContext
 builder.Services.AddHttpContextAccessor();
-// ------------------------------
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -79,6 +77,7 @@ builder.Services.AddAuthentication("Bearer")
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IWorkdayRepository, WorkdayRepository>();
+builder.Services.AddScoped<IDetailLiquidationRepositoy, DetailLiquidationRepository>();
 #endregion
 
 #region Services
@@ -104,10 +103,12 @@ builder.Services.AddHttpClient<IHolidayService, HolidayService>(client =>
         "Accept",
         "application/json");
 });
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IWorkdayService, WorkdayService>();
+builder.Services.AddScoped<IDetailLiquidationService, DetailLiquidationService>();
 #endregion
 
 var app = builder.Build();

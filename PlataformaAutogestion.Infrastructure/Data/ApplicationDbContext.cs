@@ -117,7 +117,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.ToTable("Details");
                 entity.HasKey(dl => dl.Id);
                 entity.Property(dl => dl.TotalHours).IsRequired();
-                entity.Property(dl => dl.amount).IsRequired();
+                entity.Property(dl => dl.Amount).IsRequired();
 
                 entity.HasOne(dl => dl.Liquidation)
                     .WithMany(l => l.detailLiquidations)
