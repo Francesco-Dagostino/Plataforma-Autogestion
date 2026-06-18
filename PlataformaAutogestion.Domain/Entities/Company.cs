@@ -13,7 +13,7 @@ namespace PlataformaAutogestion.Domain.Entities
         [Range(10000000000L, 99999999999L, ErrorMessage = "El CUIT debe tener 11 dígitos")]
         public long Cuit { get; set; }
         public DateTime DateHigh { get; set; }
-        public int ParameterSystem { get; set; }
+        public decimal ParameterSystem { get; set; }
 
         //relaciones
         public List<Liquidation> liquidations { get; set; } = new List<Liquidation>();

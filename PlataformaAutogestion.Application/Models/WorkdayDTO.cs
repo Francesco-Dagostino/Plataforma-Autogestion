@@ -9,7 +9,7 @@ namespace PlataformaAutogestion.Application.Models
     public class WorkdayDTO
     {
         public string Id { get; set; }
-        public int HoursWorked { get; set; }
+        public decimal HoursWorked { get; set; }
         public DateTime DateEntry { get; set; }
         public DateTime? DateApproval { get; set; }
         public StatusDay Estado { get; set; }

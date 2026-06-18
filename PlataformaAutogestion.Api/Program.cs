@@ -109,6 +109,7 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IWorkdayService, WorkdayService>();
 builder.Services.AddScoped<IDetailLiquidationService, DetailLiquidationService>();
+
 #endregion
 
 var app = builder.Build();
