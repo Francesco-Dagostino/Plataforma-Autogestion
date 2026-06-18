@@ -123,7 +123,9 @@ namespace PlataformaAutogestion.Application.Services
 
             var liquidation = new Liquidation
             {
-                LiquidationDate = new DateTime(request.Year, request.Month, DateTime.DaysInMonth(request.Year, request.Month)),
+                LiquidationDate = DateTime.SpecifyKind(
+                new DateTime(request.Year, request.Month, DateTime.DaysInMonth(request.Year, request.Month)),
+                DateTimeKind.Utc),
                 IdCompany = companyId,
                 IsClosed = guardarEnBd,
                 detailLiquidations = new()

@@ -10,9 +10,7 @@ namespace PlataformaAutogestion.Domain.Entities
         public int Id {  get; set; }
         public DateTime LiquidationDate { get; set; }
         public decimal Total {  get; set; }
-
         public bool IsClosed { get; set; }
-
         public int IdCompany { get; set; }
         public Company Company { get; set; }
 
