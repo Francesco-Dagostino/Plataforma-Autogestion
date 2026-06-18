@@ -190,5 +190,24 @@ namespace PlataformaAutogestion.Application.Services
 
             return liquidation;
         }
+        public async Task<LiquidacionCierreResponse> GetCierreMesAsync(int companyId, int month, int year)
+        {
+            var liquidacion = await _liquidationRepository.GetByPeriodAsync(companyId, month, year)
+                ?? throw new EntityNotFoundException("Liquidation", 0);
+
+            return new LiquidacionCierreResponse
+            {
+                LiquidationId = liquidacion.Id,
+                LiquidationDate = liquidacion.LiquidationDate,
+                Total = liquidacion.Total,
+                Detalles = liquidacion.detailLiquidations.Select(d => new DetalleLiquidacionResponse
+                {
+                    IdUser = d.IdUser,
+                    NombreEmpleado = $"{d.User}",
+                    TotalHoras = d.TotalHours,
+                    Monto = d.Amount
+                }).ToList()
+            };
+        }
     }
 }

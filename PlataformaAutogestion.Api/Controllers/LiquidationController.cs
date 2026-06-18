@@ -67,8 +67,31 @@ namespace PlataformaAutogestion.Api.Controllers
                 return Ok(new
                 {
                     mensaje = "Liquidación cerrada correctamente.",
-                    data = liquidacion
+                    data = new
+                    {
+                        liquidacionId = liquidacion.Id,
+                        fecha = liquidacion.LiquidationDate,
+                        total = liquidacion.Total
+                    }
                 });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("cierre-mes")]
+        [Authorize(Roles = "Admin,Owner,Encargado")]
+        public async Task<IActionResult> GetCierreMes(
+            [FromQuery] int companyId,
+            [FromQuery] int month,
+            [FromQuery] int year)
+        {
+            try
+            {
+                var cierre = await _liquidationService.GetCierreMesAsync(companyId, month, year);
+                return Ok(cierre);
             }
             catch (Exception ex)
             {
