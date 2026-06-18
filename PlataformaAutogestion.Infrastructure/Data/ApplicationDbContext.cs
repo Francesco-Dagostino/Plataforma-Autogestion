@@ -1,12 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Http; // <-- AGREGADO
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 using PlataformaAutogestion.Domain.Entities;
-using Microsoft.AspNetCore.Http; // <-- AGREGADO
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
 
 namespace PlataformaAutogestion.Infrastructure.Data
 {
@@ -32,21 +33,23 @@ namespace PlataformaAutogestion.Infrastructure.Data
         public DbSet<DetailLiquidation> Details { get; set; }
 
         // Método auxiliar para extraer el IdCompany del token JWT
-        private int GetCurrentCompanyId()
+        private int? GetCurrentCompanyId()
         {
             var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("IdCompany")?.Value;
             Console.WriteLine($">>> IdCompany del token: {claim}");
             return int.TryParse(claim, out var id) ? id : 0;
+        }
+        private string? GetCurrentRole()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            int currentCompanyId = GetCurrentCompanyId();
-
-            // Configuración de Filtros Globales (Tarjeta 11)
-            modelBuilder.Entity<User>().HasQueryFilter(u => u.IdCompany == GetCurrentCompanyId());
+            // Configuración de Filtros Globales
+            modelBuilder.Entity<User>().HasQueryFilter(u => GetCurrentRole() == "SuperAdmin" || u.IdCompany == GetCurrentCompanyId());
             modelBuilder.Entity<Workday>().HasQueryFilter(w => w.IdCompany == GetCurrentCompanyId());
             modelBuilder.Entity<Liquidation>().HasQueryFilter(l => l.IdCompany == GetCurrentCompanyId());
             modelBuilder.Entity<DetailLiquidation>().HasQueryFilter(dl => dl.IdCompany == GetCurrentCompanyId());
@@ -74,7 +77,8 @@ namespace PlataformaAutogestion.Infrastructure.Data
 
                 entity.HasOne(u => u.Company)
                     .WithMany(c => c.users)
-                    .HasForeignKey(u => u.IdCompany);
+                    .HasForeignKey(u => u.IdCompany)
+                    .IsRequired(false);
             });
 
             modelBuilder.Entity<Workday>(entity =>

@@ -42,8 +42,19 @@ namespace PlataformaAutogestion.Application.Services
 
         public async Task<UserDTO> AddAsync(UserCreateRequest request)
         {
-            var company = await _companyRepository.GetByIdAsync(request.IdCompany)
-                ?? throw new EntityNotFoundException("Company", request.IdCompany);
+            if (request.Role == Roles.SuperAdmin)
+            {
+                if (request.IdCompany != null)
+                    throw new OperationNotAllowedException("SuperAdmin no debe tener empresa asociada.");
+            }
+            else
+            {
+                if (request.IdCompany == null)
+                    throw new OperationNotAllowedException("IdCompany es requerido para este rol.");
+
+                var company = await _companyRepository.GetByIdAsync(request.IdCompany.Value)
+                    ?? throw new EntityNotFoundException("Company", request.IdCompany.Value);
+            }
 
             var user = new User
             {
@@ -51,7 +62,7 @@ namespace PlataformaAutogestion.Application.Services
                 Email = request.Email,
                 UserName = request.UserName,
                 Password = request.Password,
-                role = Roles.Empleado,
+                role = request.Role,
                 IdCompany = request.IdCompany,
                 CreationDate = DateTime.UtcNow
             };
@@ -60,17 +71,29 @@ namespace PlataformaAutogestion.Application.Services
             return UserDTO.FromEntity(user);
         }
 
-        public async Task UpdateAsync(int id, UserCreateRequest request)
+        public async Task UpdateRoleAsync(int id, UserUpdateRoleRequest request)
+        {
+            var user = await _userRepository.GetByIdAsync(id)
+                ?? throw new EntityNotFoundException("User", id);
+
+            if (request.Role == Roles.SuperAdmin)
+                throw new OperationNotAllowedException("No se puede asignar el rol SuperAdmin desde esta operación.");
+
+            user.role = request.Role;
+
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task UpdateProfileAsync(int id, UserUpdateProfileRequest request)
         {
             var user = await _userRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("User", id);
 
             user.Name = request.Name;
             user.Email = request.Email;
-            user.UserName = request.UserName;
-            user.Password = request.Password;
-            user.role = request.Role;
-            user.IdCompany = request.IdCompany;
+
+            if (!string.IsNullOrWhiteSpace(request.Password))
+                user.Password = request.Password;
 
             await _userRepository.UpdateAsync(user);
         }
