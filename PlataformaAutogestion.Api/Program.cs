@@ -77,6 +77,7 @@ builder.Services.AddAuthentication("Bearer")
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IWorkdayRepository, WorkdayRepository>();
+builder.Services.AddScoped<ILiquidationRepository, LiquidationRepository>();
 builder.Services.AddScoped<IDetailLiquidationRepositoy, DetailLiquidationRepository>();
 #endregion
 
@@ -108,6 +109,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IWorkdayService, WorkdayService>();
+builder.Services.AddScoped<ILiquidationService, LiquidationService>();
 builder.Services.AddScoped<IDetailLiquidationService, DetailLiquidationService>();
 
 #endregion
