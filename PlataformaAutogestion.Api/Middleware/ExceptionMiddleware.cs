@@ -50,6 +50,10 @@ namespace PlataformaAutogestion.Api.Middleware
             {
                 await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message);
             }
+            catch (OperationNotAllowedException ex)
+            {
+                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message);
+            }
             catch (Exception ex)
             {
                 await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, "Ocurrió un error inesperado.");

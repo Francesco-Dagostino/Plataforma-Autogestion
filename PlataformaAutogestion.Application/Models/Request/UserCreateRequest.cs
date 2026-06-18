@@ -19,7 +19,6 @@ namespace PlataformaAutogestion.Application.Models.Request
         public string Password { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Roles Role { get; set; }
-        [Required]
-        public int IdCompany { get; set; }
+        public int? IdCompany { get; set; }
     }
 }

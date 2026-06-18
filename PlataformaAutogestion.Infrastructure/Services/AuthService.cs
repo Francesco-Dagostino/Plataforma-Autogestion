@@ -48,8 +48,10 @@ namespace PlataformaAutogestion.Infrastructure.Services
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.role.ToString()),
-                new Claim("IdCompany", user.IdCompany.ToString())
             };
+
+            if (user.IdCompany.HasValue)
+                claims.Add(new Claim("IdCompany", user.IdCompany.Value.ToString()));
 
             var token = new JwtSecurityToken(
                 _options.Issuer,

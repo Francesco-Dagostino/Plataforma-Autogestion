@@ -14,7 +14,7 @@ namespace PlataformaAutogestion.Application.Models
         public string UserName { get; set; }
         public DateTime CreationDate { get; set; }
         public Roles Role { get; set; }
-        public int IdCompany { get; set; }
+        public int? IdCompany { get; set; }
 
         public static UserDTO FromEntity(User user) => new UserDTO
         {

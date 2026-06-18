@@ -16,12 +16,14 @@ namespace PlataformaAutogestion.Application.Services
         private readonly IWorkdayRepository _workdayRepository;
         private readonly ICompanyRepository _companyRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IHolidayService _holidayService;
 
-        public WorkdayService(IWorkdayRepository workdayRepository, ICompanyRepository companyRepository, IUserRepository userRepository)
+        public WorkdayService(IWorkdayRepository workdayRepository, ICompanyRepository companyRepository, IUserRepository userRepository, IHolidayService holidayService)
         {
             _workdayRepository = workdayRepository;
             _companyRepository = companyRepository;
             _userRepository = userRepository;
+            _holidayService = holidayService;
         }
 
         public async Task<List<WorkdayDTO>> GetByUserAsync(int userId)
@@ -41,8 +43,14 @@ namespace PlataformaAutogestion.Application.Services
             var user = await _userRepository.GetByIdAsync(userId)
                 ?? throw new EntityNotFoundException("User", userId);
 
-            var company = await _companyRepository.GetByIdAsync(user.IdCompany)
-                ?? throw new EntityNotFoundException("Company", user.IdCompany);
+            var idCompany = user.IdCompany
+                ?? throw new OperationNotAllowedException("El usuario no tiene una empresa asociada, no puede registrar jornadas.");
+
+            var company = await _companyRepository.GetByIdAsync(idCompany)
+                ?? throw new EntityNotFoundException("Company", idCompany);
+
+            if (await _holidayService.IsHolidayAsync(request.DateEntry))
+                throw new OperationNotAllowedException("Ese día es o fue feriado no laboral.");
 
             var workday = new Workday
             {
@@ -52,7 +60,7 @@ namespace PlataformaAutogestion.Application.Services
                 DateApproval = null,
                 Estado = StatusDay.Pendiente,
                 IdUser = userId,
-                IdCompany = user.IdCompany
+                IdCompany = idCompany
             };
 
             await _workdayRepository.AddAsync(workday);

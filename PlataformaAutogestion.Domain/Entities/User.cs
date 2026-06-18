@@ -11,8 +11,8 @@ public class User
     public string Password { get; set; }
     public DateTime CreationDate { get; set; }
     public Roles role { get; set; }
-    public int IdCompany { get; set; }
-    public Company Company{  get; set; }
+    public int? IdCompany { get; set; }
+    public Company? Company{  get; set; }
     
     public List<DetailLiquidation> detailLiquidations { get; set; } = new List<DetailLiquidation>();
     public List<Workday> workdays { get; set; } = new List<Workday>();
