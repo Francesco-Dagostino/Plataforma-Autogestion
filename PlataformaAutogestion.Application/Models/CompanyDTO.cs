@@ -11,7 +11,7 @@ namespace PlataformaAutogestion.Application.Models
         public string? Name { get; set; }
         public long Cuit { get; set; }
         public DateTime DateHigh { get; set; }
-        public int ParameterSystem { get; set; }
+        public decimal ParameterSystem { get; set; }
 
         public static CompanyDTO FromEntity(Company company)
         {

@@ -8,7 +8,7 @@ namespace PlataformaAutogestion.Domain.Entities
     public class Workday
     {
         public string Id { get; set; }
-        public int HoursWorked { get; set; }
+        public decimal HoursWorked { get; set; }
         public DateTime DateEntry { get; set; }
         public DateTime? DateApproval { get; set; } // nullable: se completa cuando se aprueba
         public StatusDay Estado { get; set; }
