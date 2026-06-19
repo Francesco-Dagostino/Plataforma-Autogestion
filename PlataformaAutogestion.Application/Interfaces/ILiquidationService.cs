@@ -11,5 +11,7 @@ namespace PlataformaAutogestion.Application.Interfaces
         Task<Liquidation> CerrarMesAsync(int companyId, LiquidationRequest request);
         Task<SimulacionEmpleadoResponse> SimularSueldoEmpleadoAsync(int userId, int month, int year);
         Task<LiquidacionCierreResponse> GetCierreMesAsync(int companyId, int month, int year);
+
+        Task DeleteCierreMesAsync(int companyId, int liquidationId);
     }
 }

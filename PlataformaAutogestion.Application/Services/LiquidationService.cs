@@ -33,7 +33,7 @@ namespace PlataformaAutogestion.Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<SimulacionEmpleadoResponse> SimularSueldoEmpleadoAsync( int userId,int month,int year)
+        public async Task<SimulacionEmpleadoResponse> SimularSueldoEmpleadoAsync(int userId, int month, int year)
         {
             if (month < 1 || month > 12)
                 throw new InvalidOperationException("Mes inválido.");
@@ -48,7 +48,6 @@ namespace PlataformaAutogestion.Application.Services
                 ?? throw new EntityNotFoundException("Company", user.IdCompany.Value);
 
             decimal valorHoraEmpresa = company.ParameterSystem;
-
             var allWorkdays = await _workdayRepository.GetByUserAsync(userId);
 
             var jornadasDelMes = allWorkdays
@@ -64,7 +63,6 @@ namespace PlataformaAutogestion.Application.Services
             foreach (var jornada in jornadasDelMes)
             {
                 totalHoras += jornada.HoursWorked;
-
                 decimal valorHoraAplicado = valorHoraEmpresa;
 
                 if (await _holidayService.IsHolidayAsync(jornada.DateEntry))
@@ -80,7 +78,8 @@ namespace PlataformaAutogestion.Application.Services
                 TotalHoras = totalHoras,
                 MontoAcumulado = montoAcumulado,
                 Mes = month,
-                Anio = year
+                Anio = year,
+                ValorHoraActual = valorHoraEmpresa
             };
         }
 
@@ -92,7 +91,7 @@ namespace PlataformaAutogestion.Application.Services
         public async Task<Liquidation> CerrarMesAsync(int companyId, LiquidationRequest request)
         {
             if (await _liquidationRepository.ExistsLiquidationForPeriodAsync(companyId, request.Month, request.Year))
-                throw new InvalidOperationException("Ya existe una liquidación cerrada para este período.");
+                throw new InvalidOperationException("Ya existe una liquidación cerrada para este período. Si deseas generarla de nuevo, primero debes anular la actual.");
 
             return await GenerarLiquidacionCoreAsync(companyId, request, true);
         }
@@ -124,8 +123,9 @@ namespace PlataformaAutogestion.Application.Services
             var liquidation = new Liquidation
             {
                 LiquidationDate = DateTime.SpecifyKind(
-                new DateTime(request.Year, request.Month, DateTime.DaysInMonth(request.Year, request.Month)),
-                DateTimeKind.Utc),
+                    new DateTime(request.Year, request.Month, DateTime.DaysInMonth(request.Year, request.Month)),
+                    DateTimeKind.Utc),
+                ExecutionDate = DateTime.UtcNow, // <-- SOLUCIÓN A FRAN: Fecha exacta del clic
                 IdCompany = companyId,
                 IsClosed = guardarEnBd,
                 detailLiquidations = new()
@@ -182,11 +182,24 @@ namespace PlataformaAutogestion.Application.Services
                 Detalles = liquidacion.detailLiquidations.Select(d => new DetalleLiquidacionResponse
                 {
                     IdUser = d.IdUser,
-                    NombreEmpleado = $"{d.User}",
+                    // SOLUCIÓN BUG: Trae el nombre del usuario o avisa si está nulo
+                    NombreEmpleado = d.User != null ? d.User.Name : "Desconocido",
                     TotalHoras = d.TotalHours,
                     Monto = d.Amount
                 }).ToList()
             };
+        }
+
+        // rehacer mes
+        public async Task DeleteCierreMesAsync(int companyId, int liquidationId)
+        {
+            var liquidation = await _liquidationRepository.GetByIdAsync(liquidationId)
+                ?? throw new EntityNotFoundException("Liquidation", liquidationId);
+
+            if (liquidation.IdCompany != companyId)
+                throw new UnauthorizedAccessException("La liquidación no pertenece a tu empresa.");
+
+            await _liquidationRepository.DeleteAsync(liquidation);
         }
     }
 }

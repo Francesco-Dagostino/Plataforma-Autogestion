@@ -72,7 +72,8 @@ namespace PlataformaAutogestion.Api.Controllers
                     data = new
                     {
                         liquidacionId = liquidacion.Id,
-                        fecha = liquidacion.LiquidationDate,
+                        periodoLiquidado = liquidacion.LiquidationDate, // Ej: 30/06
+                        fechaEjecucion = liquidacion.ExecutionDate,     // Ej: 18/06 20:15
                         total = liquidacion.Total
                     }
                 });
@@ -92,6 +93,23 @@ namespace PlataformaAutogestion.Api.Controllers
                 var companyId = GetCompanyIdFromToken();
                 var cierre = await _liquidationService.GetCierreMesAsync(companyId, month, year);
                 return Ok(cierre);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // NUEVO ENDPOINT: Anula la liquidación
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> AnularCierreMes(int id)
+        {
+            try
+            {
+                var companyId = GetCompanyIdFromToken();
+                await _liquidationService.DeleteCierreMesAsync(companyId, id);
+                return Ok(new { mensaje = "Liquidación anulada correctamente. Ahora puedes volver a simular o cerrar el mes." });
             }
             catch (Exception ex)
             {
