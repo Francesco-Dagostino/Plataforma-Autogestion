@@ -1,0 +1,41 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using PlataformaAutogestion.Application.Interfaces;
+
+namespace PlataformaAutogestion.Api.Controllers
+{
+    [ApiController]
+    [Route("api/reports")]
+    public class ReportsController : ControllerBase
+    {
+        private readonly IReporteService _reporteService;
+
+        public ReportsController(IReporteService reporteService)
+        {
+            _reporteService = reporteService;
+        }
+
+        [HttpGet("recibos/{id}")]
+        public async Task<IActionResult> GenerarRecibos(int id)
+        {
+            var pdf = await _reporteService.GenerarPdfRecibosAsync(id);
+
+            return File(
+                pdf,
+                "application/pdf",
+                $"recibos_{id}.pdf"
+            );
+        }
+
+        [HttpGet("banco/{id}")]
+        public async Task<IActionResult> GenerarLoteBanco(int id)
+        {
+            var txt = await _reporteService.GenerarTxtBancoAsync(id);
+
+            return File(
+                txt,
+                "text/plain",
+                $"lote_banco_{id}.txt"
+            );
+        }
+    }
+}
