@@ -106,7 +106,7 @@
   - **Capa:** Infrastructure / Application
   - *Descripción:* Crear `IFeriadoService` en Application. Implementar en Infrastructure consumiendo la API pública de feriados de Argentina con `HttpClientFactory`. Registrar en `Program.cs`.
 
-- [ ] **Tarjeta 15: Arquitectura de Liquidaciones (Módulo 4)**
+- [x] **Tarjeta 15: Arquitectura de Liquidaciones (Módulo 4)**
   - **Responsable:** Danilo Mercado
   - **Capa:** Application / API
   - *Descripción:* 1. Crear `ILiquidationRepository` y `LiquidationRepository`.
