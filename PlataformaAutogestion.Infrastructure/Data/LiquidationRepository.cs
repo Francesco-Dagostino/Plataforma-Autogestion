@@ -42,5 +42,13 @@ namespace PlataformaAutogestion.Infrastructure.Data
                     l.LiquidationDate.Year == year &&
                     l.IsClosed == true);
         }
+
+        public async Task<Liquidation?> GetByIdWithDetailsAsync(int id)
+        {
+            return await _context.Set<Liquidation>()
+                .Include(l => l.detailLiquidations)
+                    .ThenInclude(d => d.User)
+                .FirstOrDefaultAsync(l => l.Id == id);
+        }
     }
 }

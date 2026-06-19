@@ -111,6 +111,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IWorkdayService, WorkdayService>();
 builder.Services.AddScoped<ILiquidationService, LiquidationService>();
 builder.Services.AddScoped<IDetailLiquidationService, DetailLiquidationService>();
+builder.Services.AddScoped<IReporteService, ReporteService>();
 
 #endregion
 
