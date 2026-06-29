@@ -113,7 +113,7 @@
     2. Crear `ILiquidationService` y `LiquidationService` con algoritmo de cálculo cruzando horas trabajadas, valor hora y feriados.
     3. Crear `LiquidationController` con endpoints `POST /api/liquidation/simular` y `POST /api/liquidation/cerrar-mes`.
 
-- [ ] **Tarjeta 16: Arquitectura de Reportes (Módulo 5)**
+- [x] **Tarjeta 16: Arquitectura de Reportes (Módulo 5)**
   - **Responsable:** Facundo Nieva
   - **Capa:** Application / API
   - *Descripción:* 1. Crear `IReporteService` y `ReporteService` (generación de PDF y archivo TXT de lote bancario).
@@ -129,7 +129,7 @@
 ## 🚀 ETAPA 6: Deploy y Puesta en Producción (Día 14)
 *Objetivo: Dejar la API en internet lista para la defensa oral ante los profesores.*
 
-- [ ] **Tarjeta 18: Provisión de Infraestructura Base en Azure**
+- [x] **Tarjeta 18: Provisión de Infraestructura Base en Azure**
   - **Responsable:** Facundo Nieva
   - **Capa:** DevOps
   - *Descripción:* Crear el Resource Group dedicado al TP. Dentro de él, crear el App Service Plan y el App Service (Web App) que va a hostear la API. Este recurso es el destino del deploy de la Tarjeta 20.
