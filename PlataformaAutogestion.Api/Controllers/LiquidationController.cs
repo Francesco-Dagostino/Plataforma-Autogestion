@@ -96,6 +96,10 @@ namespace PlataformaAutogestion.Api.Controllers
             }
             catch (Exception ex)
             {
+                if (ex.Message.Contains("No se encontró") || ex.Message.Contains("id 0"))
+                {
+                    return NotFound(new { error = $"No se encontró ninguna liquidación procesada para el período {month}/{year}." });
+                }
                 return BadRequest(new { error = ex.Message });
             }
         }
