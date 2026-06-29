@@ -18,10 +18,10 @@ namespace PlataformaAutogestion.Api.Controllers
             _userService = userService;
         }
 
-        //cambiar aquii, ver que empleados y que empresas tiene el sistema
+        
 
         [Authorize(Roles = "Admin, SuperAdmin")] 
-        [HttpGet]
+        [HttpGet("Mi Empresa")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllAsync();
@@ -36,7 +36,7 @@ namespace PlataformaAutogestion.Api.Controllers
             return Ok(users);
         }
 
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(int id, UserUpdateRoleRequest request)
         {

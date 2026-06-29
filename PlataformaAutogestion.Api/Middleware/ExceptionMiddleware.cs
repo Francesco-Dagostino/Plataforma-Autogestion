@@ -46,6 +46,10 @@ namespace PlataformaAutogestion.Api.Middleware
             {
                 await HandleExceptionAsync(context, HttpStatusCode.Unauthorized, ex.Message);
             }
+            catch (UnauthorizedAccessException)
+            {
+                await HandleExceptionAsync(context, HttpStatusCode.Unauthorized, "Credenciales inválidas");
+            }
             catch (InvalidOperationException ex)
             {
                 await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message);

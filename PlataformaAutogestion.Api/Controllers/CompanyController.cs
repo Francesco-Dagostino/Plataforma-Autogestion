@@ -27,7 +27,7 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
 
-        //[Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CompanyCreateRequest dto)
         {

@@ -2,7 +2,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\PlataformaAutogestion.Application\PlataformaAutogestion.Application.csproj" />
-		<ProjectReference Include="..\PlataformaAutogestion.Domain\PlataformaAutogestion.Domain.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
