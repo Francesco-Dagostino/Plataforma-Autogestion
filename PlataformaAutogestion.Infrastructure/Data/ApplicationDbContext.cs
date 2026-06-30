@@ -160,7 +160,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), sqlOptions => sqlOptions.EnableRetryOnFailure());
 
             // Pasamos null para el IHttpContextAccessor en tiempo de diseño
             return new ApplicationDbContext(optionsBuilder.Options, null!, false);

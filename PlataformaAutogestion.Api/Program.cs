@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen(setupAction =>
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
