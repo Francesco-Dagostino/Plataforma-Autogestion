@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen(setupAction =>
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
@@ -125,6 +125,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
+
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
