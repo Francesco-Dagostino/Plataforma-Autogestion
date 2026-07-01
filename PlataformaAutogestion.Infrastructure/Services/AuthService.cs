@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PlataformaAutogestion.Domain.Entities;
 using PlataformaAutogestion.Domain.Interfaces;
+using PlataformaAutogestion.Domain.Security;
 using PlataformaAutogestion.Infrastructure.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -27,12 +29,16 @@ namespace PlataformaAutogestion.Infrastructure.Services
         {
             var user = await _context.Users
                 .IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x =>
-                x.UserName == userName &&
-                x.Password == password);
+                .FirstOrDefaultAsync(x => x.UserName == userName);
 
-            if (user == null)
+            if (user == null || !PasswordHasher.Verify(password, user.Password))
                 throw new UnauthorizedAccessException("Credenciales inválidas");
+
+            if (!PasswordHasher.IsHashed(user.Password))
+            {
+                user.Password = PasswordHasher.Hash(password);
+                await _context.SaveChangesAsync();
+            }
 
             return GenerateToken(user);
         }
