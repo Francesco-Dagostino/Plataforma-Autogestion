@@ -60,7 +60,12 @@ namespace PlataformaAutogestion.Api.Middleware
             }
             catch (Exception ex)
             {
-                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, "Ocurrió un error inesperado.");
+                Console.WriteLine(ex.ToString()); //cambiar aca!!!
+
+                await HandleExceptionAsync(
+                    context,
+                    HttpStatusCode.InternalServerError,
+                    ex.Message);
             }
         }
 

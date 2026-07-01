@@ -55,6 +55,8 @@ builder.Services.AddSwaggerGen(setupAction =>
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
+Console.WriteLine($"ConnectionString: {connectionString}");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
