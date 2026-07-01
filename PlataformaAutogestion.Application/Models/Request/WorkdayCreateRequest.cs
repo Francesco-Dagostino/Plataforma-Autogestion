@@ -5,10 +5,10 @@ namespace PlataformaAutogestion.Application.Models.Request
     public class WorkdayCreateRequest
     {
         [Required]
-        [Range(1, 24)]
-        public int HoursWorked { get; set; }
+        [Range(typeof(decimal), "0", "24", ErrorMessage = "Las horas trabajadas deben estar entre 0 y 24.")]
+        public decimal HoursWorked { get; set; } = 0;
 
         [Required]
-        public DateTime DateEntry { get; set; }
+        public DateTime DateEntry { get; set; } = DateTime.Today;
     }
 }

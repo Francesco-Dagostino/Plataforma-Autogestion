@@ -10,8 +10,8 @@ namespace PlataformaAutogestion.Domain.Entities
         public string Id { get; set; } = string.Empty;
 
         [Required]
-        [Range(typeof(decimal), "0.01", "24")]
-        public decimal HoursWorked { get; set; }
+        [Range(typeof(decimal), "0", "24", ErrorMessage = "Las horas trabajadas deben estar entre 0 y 24.")]
+        public decimal HoursWorked { get; set; } = 0;
 
         [Required]
         public DateTime DateEntry { get; set; }
