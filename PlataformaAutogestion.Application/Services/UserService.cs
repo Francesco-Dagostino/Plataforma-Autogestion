@@ -4,9 +4,7 @@ using PlataformaAutogestion.Application.Models.Request;
 using PlataformaAutogestion.Domain.Entities;
 using PlataformaAutogestion.Domain.Exceptions;
 using PlataformaAutogestion.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using PlataformaAutogestion.Domain.Security;
 using static PlataformaAutogestion.Domain.Enums.QuestionState;
 
 namespace PlataformaAutogestion.Application.Services
@@ -15,6 +13,7 @@ namespace PlataformaAutogestion.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ICompanyRepository _companyRepository;
+
         public UserService(IUserRepository userRepository, ICompanyRepository companyRepository)
         {
             _userRepository = userRepository;
@@ -37,6 +36,7 @@ namespace PlataformaAutogestion.Application.Services
         {
             var user = await _userRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("User", id);
+
             return UserDTO.FromEntity(user);
         }
 
@@ -52,7 +52,7 @@ namespace PlataformaAutogestion.Application.Services
                 if (request.IdCompany == null)
                     throw new OperationNotAllowedException("IdCompany es requerido para este rol.");
 
-                var company = await _companyRepository.GetByIdAsync(request.IdCompany.Value)
+                _ = await _companyRepository.GetByIdAsync(request.IdCompany.Value)
                     ?? throw new EntityNotFoundException("Company", request.IdCompany.Value);
             }
 
@@ -61,13 +61,14 @@ namespace PlataformaAutogestion.Application.Services
                 Name = request.Name,
                 Email = request.Email,
                 UserName = request.UserName,
-                Password = request.Password,
+                Password = PasswordHasher.Hash(request.Password),
                 role = request.Role,
                 IdCompany = request.IdCompany,
                 CreationDate = DateTime.UtcNow
             };
 
             await _userRepository.AddAsync(user);
+
             return UserDTO.FromEntity(user);
         }
 
@@ -93,7 +94,7 @@ namespace PlataformaAutogestion.Application.Services
             user.Email = request.Email;
 
             if (!string.IsNullOrWhiteSpace(request.Password))
-                user.Password = request.Password;
+                user.Password = PasswordHasher.Hash(request.Password);
 
             await _userRepository.UpdateAsync(user);
         }
@@ -102,6 +103,7 @@ namespace PlataformaAutogestion.Application.Services
         {
             var user = await _userRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("User", id);
+
             await _userRepository.DeleteAsync(user);
         }
     }
