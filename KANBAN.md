@@ -140,12 +140,12 @@
   - **Capa:** DevOps / API
   - *Descripción:* Configurar como Application Settings del App Service: la `ConnectionString` de la base de la Tarjeta 18 y la `Jwt:Key`. Idealmente, alojar la `Jwt:Key` en un Azure Key Vault y referenciarla desde el App Service (Key Vault reference). Como mínimo aceptable, variable de entorno directa en el App Service.
 
-- [ ] **Tarjeta 20: Pipeline de Automatización (CI/CD)**
+- [x] **Tarjeta 20: Pipeline de Automatización (CI/CD)**
   - **Responsable:** Francesco D'agostino
   - **Capa:** DevOps (GitHub Actions)
   - *Descripción:* Escribir el workflow `.yml` que, al pushear a `main`, compile el proyecto, publique el artefacto y lo despliegue al App Service de la Tarjeta 17 (vía `azure/webapps-deploy` con publish profile, o `az webapp deploy` con Service Principal). Credenciales como GitHub Secrets. Confirmar al menos una corrida en verde en la pestaña Actions.
 
-- [ ] **Tarjeta 21: Validación End-to-End en Producción**
+- [x] **Tarjeta 21: Validación End-to-End en Producción**
   - **Responsable:** Equipo completo
   - **Capa:** QA
   - *Descripción:* Probar contra la URL pública de Azure: login y generación de JWT, Swagger accesible, CRUD de Workday/Liquidation funcionando contra la base real, y que el consumo de la API de feriados (HolidayService) responda correctamente. Confirmar que el HttpClient de HolidayService está registrado vía `AddHttpClient` en `Program.cs` (HttpClientFactory), no instanciado manualmente..
