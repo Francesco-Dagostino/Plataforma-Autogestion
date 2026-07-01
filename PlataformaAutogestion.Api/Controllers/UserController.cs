@@ -62,13 +62,13 @@ namespace PlataformaAutogestion.Api.Controllers
             return Ok(user);
         }
 
-        [Authorize(Roles = "Admin, SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
-        public async Task<IActionResult> Add(UserCreateRequest request)
+        public async Task<IActionResult> AddBySuperAdmin(UserCreateRequest request)
         {
             try
             {
-                var user = await _userService.AddAsync(request);
+                var user = await _userService.AddBySuperAdminAsync(request);
                 return Ok(user);
             }
             catch (EntityNotFoundException ex)
@@ -78,6 +78,23 @@ namespace PlataformaAutogestion.Api.Controllers
             catch (OperationNotAllowedException ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("CrearEmpleado")]
+        public async Task<IActionResult> AddByAdmin(UserCreateByAdminRequest request)
+        {
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+
+            try
+            {
+                var user = await _userService.AddByAdminAsync(request, companyId);
+                return Ok(user);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
         }
 

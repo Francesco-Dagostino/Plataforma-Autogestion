@@ -40,7 +40,7 @@ namespace PlataformaAutogestion.Application.Services
             return UserDTO.FromEntity(user);
         }
 
-        public async Task<UserDTO> AddAsync(UserCreateRequest request)
+        public async Task<UserDTO> AddBySuperAdminAsync(UserCreateRequest request)
         {
             if (request.Role == Roles.SuperAdmin)
             {
@@ -68,7 +68,26 @@ namespace PlataformaAutogestion.Application.Services
             };
 
             await _userRepository.AddAsync(user);
+            return UserDTO.FromEntity(user);
+        }
 
+        public async Task<UserDTO> AddByAdminAsync(UserCreateByAdminRequest request, int companyId)
+        {
+            _ = await _companyRepository.GetByIdAsync(companyId)
+                ?? throw new EntityNotFoundException("Company", companyId);
+
+            var user = new User
+            {
+                Name = request.Name,
+                Email = request.Email,
+                UserName = request.UserName,
+                Password = PasswordHasher.Hash(request.Password),
+                role = Roles.Empleado,
+                IdCompany = companyId,
+                CreationDate = DateTime.UtcNow
+            };
+
+            await _userRepository.AddAsync(user);
             return UserDTO.FromEntity(user);
         }
 

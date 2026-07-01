@@ -16,6 +16,7 @@ namespace PlataformaAutogestion.Api.Controllers
             _reporteService = reporteService;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("recibos/{id}")]
         public async Task<IActionResult> GenerarRecibos(int id)
         {
@@ -28,6 +29,7 @@ namespace PlataformaAutogestion.Api.Controllers
             );
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("banco/{id}")]
         public async Task<IActionResult> GenerarLoteBanco(int id)
         {
