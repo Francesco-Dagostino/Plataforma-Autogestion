@@ -1,80 +1,262 @@
 # 🏢 Plataforma de Autogestión de Horas y Gestión de Nómina - Backend API
 
-Este repositorio contiene el backend y la API REST del proyecto, desarrollado como el componente central del Trabajo Práctico Integrador (TPI) para Programación 4 y núcleo de software del Trabajo Integrador Final (TIF) de la Tecnicatura Universitaria en Programación.
+Backend REST desarrollado como Trabajo Práctico Integrador (TPI) para Programación 4. La plataforma permite administrar empresas, usuarios, jornadas laborales, aprobaciones y liquidaciones mensuales de haberes para organizaciones con múltiples perfiles de acceso.
 
-La plataforma está diseñada para optimizar y digitalizar el registro de la jornada laboral en PYMES industriales, automatizando el circuito de validación/aprobación por parte de los administradores y procesando de manera transparente y segura el cálculo de la liquidación de haberes mensuales.
-
----
-
-## 👥 Integrantes del Equipo
-* Danilo Mercado
-* Francesco D'agostino
-* Facundo Nieva
+La API se encuentra desplegada en Azure App Service y utiliza una base de datos relacional Azure SQL Database mediante Entity Framework Core con enfoque Code First.
 
 ---
 
-## 🛠️ Arquitectura y Stack Tecnológico
+## 👥 Integrantes
 
-El backend se encuentra estructurado bajo el patrón arquitectónico de Clean Architecture (Arquitectura Limpia), promoviendo la inyección de dependencias y el desacoplamiento absoluto de sus capas físicas para garantizar la mantenibilidad y escalabilidad del sistema.
-
-### Capas del Proyecto:
-1. PlataformaAutogestion.Domain: Contiene las entidades esenciales del negocio (Usuario, Empresa, JornadaLaboral, Liquidacion, DetalleLiquidacion), tipos enumerados (Roles, Estados) y contratos base independientes de cualquier framework o librería externa.
-2. PlataformaAutogestion.Application: Alberga la lógica de negocio central, interfaces y contratos de servicios, DTOs (Data Transfer Objects), y las implementaciones de los casos de uso del sistema.
-3. PlataformaAutogestion.Infrastructure: Implementa la persistencia de datos mediante Entity Framework Core (Code First), el contexto de base de datos (ApplicationDbContext), migraciones, mapeos y la concreción del patrón de diseño Generic Repository.
-4. PlataformaAutogestion.Api: Capa de presentación web que expone los endpoints REST, configuración de arranque (Program.cs), middlewares de manejo de excepciones, seguridad y configuraciones de Swagger.
-
-### Stack Técnico Principal:
-* Lenguaje: C# / .NET 8.0
-* Framework: ASP.NET Core Web API
-* ORM: Entity Framework Core
-* Base de Datos: PostgreSQL (Entorno local y producción) / Azure SQL Database
-* Autenticación: JSON Web Tokens (JWT) con políticas basadas en roles (Claims)
+- 👨‍💻 Danilo Mercado
+- 👨‍💻 Francesco D'agostino
+- 👨‍💻 Facundo Nieva
 
 ---
 
-## 🔑 Características Clave y Reglas de Negocio
+## 🌐 Despliegue
 
-* Aislamiento Multi-empresa (Multitenancy): Implementación de un filtro global de datos (HasQueryFilter) en la persistencia. Cada consulta a la base de datos se filtra automáticamente por el identificador de la organización (EmpresaId) del usuario autenticado, asegurando una separación estricta de la información.
-* Roles de Acceso Diferenciados:
-  * SuperAdmin: Gestión global de empresas y configuraciones de infraestructura.
-  * Administrador (Dueño/RRHH): Gestión de empleados, ABM de tarifas/horas y aprobación de jornadas.
-  * Operario: Carga diaria de jornadas laborales y consulta de historial.
-* Circuito Inmutable de Jornadas: El operario declara sus horas; una vez que el administrador cambia el estado a Aprobado o Rechazado, el registro se vuelve inmutable bloqueando cualquier intento de edición para asegurar la transparencia de la nómina.
-* Motor de Liquidación de Haberes: Procesamiento automatizado al cierre de mes que consolida las horas validadas de los trabajadores y computa los montos a transferir en función de las reglas preestablecidas.
+La API se encuentra desplegada en Azure App Service para la instancia de evaluación docente.
+
+- Dominio público: informado en la entrega del CVG.
+- Documentación Swagger: disponible en /swagger.
 
 ---
 
-## 📁 Estructura de la Solución
+## 🧱 Arquitectura
 
-* PlataformaAutogestion.sln
-* PlataformaAutogestion.Api/
-  * Controllers/
-  * Middlewares/
-  * Program.cs
-  * appsettings.json
-* PlataformaAutogestion.Application/
-  * Interfaces/
-  * Services/
-  * DTOS/
-* PlataformaAutogestion.Infrastructure/
-  * Context/
-    * ApplicationDbContext.cs
-  * Migrations/
-  * Repositories/
-    * GenericRepository.cs
-* PlataformaAutogestion.Domain/
-  * Entities/
-  * Enums/
+El proyecto está organizado bajo el patrón Clean Architecture, separando responsabilidades por capas y utilizando inyección de dependencias para desacoplar controladores, servicios, repositorios y persistencia.
+
+### 📦 Capas
+
+- 🧩 PlataformaAutogestion.Domain: entidades del negocio, enumeraciones, excepciones e interfaces de repositorios/servicios de dominio.
+- ⚙️ PlataformaAutogestion.Application: lógica de negocio, servicios de aplicación, DTOs, requests y responses.
+- 🗄️ PlataformaAutogestion.Infrastructure: implementación de persistencia con Entity Framework Core, repositorios, migraciones, ApplicationDbContext y servicios externos.
+- 🌐 PlataformaAutogestion.Api: Web API, controladores, configuración de autenticación JWT, Swagger, middleware de errores e inyección de dependencias.
 
 ---
 
-## 🚦 Cumplimiento de Requerimientos de Cátedra (Aprobación Directa)
+## 🛠️ Stack Tecnológico
 
-Para cumplir estrictamente con las pautas de evaluación y promoción de la materia, la solución integra de forma obligatoria:
-* [x] Inyección de Dependencias: Utilizada nativamente en todas las capas para desacoplar controladores, servicios y repositorios.
-* [x] Patrón Generic Repository: Abstracción unificada del acceso a datos para operaciones CRUD recurrentes.
-* [x] Persistencia Real: Modelado Code-First implementado sobre un motor relacional multiusuario (PostgreSQL / Azure SQL), sin el uso de bases de datos InMemory o SQLite.
-* [x] Pipeline de CI/CD: Despliegue automatizado continuo mediante GitHub Actions hacia servicios web en Azure.
-* [x] Consumo de Servicios Externos: Implementado mediante HttpClientFactory en endpoints dedicados.
-* [x] Seguridad Avanzada: Almacenamiento seguro de claves de firma JWT en Variables de Entorno de Azure / Azure Key Vault.
+- 💻 Lenguaje: C#
+- 🌐 Framework: ASP.NET Core Web API
+- ⚙️ Runtime: .NET 10
+- 🧬 ORM: Entity Framework Core
+- 🗄️ Base de datos: Azure SQL Database / SQL Server
+- 🔐 Autenticación: JWT Bearer con roles y claims
+- 📘 Documentación y pruebas: Swagger / OpenAPI
+- 🚀 CI/CD: GitHub Actions
+- ☁️ Cloud: Azure App Service + Azure SQL Database
 
+---
+
+## ✨ Funcionalidades Principales
+
+- 🏢 Gestión de empresas por usuario SuperAdmin.
+- 👥 Gestión de usuarios por empresa.
+- 🔐 Autenticación mediante JWT.
+- 🛡️ Autorización por roles:
+  - SuperAdmin
+  - Admin
+  - Empleado
+- ⏱️ Carga de jornadas laborales.
+- ✅ Aprobación y rechazo de jornadas.
+- 🧮 Simulación de liquidaciones.
+- 💰 Cierre mensual de liquidaciones.
+- 🗑️ Anulación de liquidaciones cerradas.
+- 📄 Consulta de detalles de liquidación.
+- 📑 Generación de reportes:
+  - Recibos PDF.
+  - Archivo TXT para lote bancario.
+- 🌎 Consumo de API externa de feriados mediante HttpClientFactory.
+
+---
+
+## 📌 Reglas de Negocio
+
+- 🏢 Cada usuario pertenece a una empresa, excepto el SuperAdmin.
+- 🧑‍💼 Los usuarios Admin gestionan información de su propia empresa.
+- ⏳ Las jornadas cargadas quedan en estado pendiente hasta ser aprobadas o rechazadas.
+- ✅ Solo las jornadas aprobadas participan en el cierre mensual.
+- 📅 Una empresa no puede tener más de una liquidación cerrada para el mismo mes y año.
+- 🔁 Para rehacer una liquidación mensual, primero debe anularse la liquidación existente.
+- 🔎 Las consultas están filtradas por empresa mediante filtros globales en ApplicationDbContext.
+
+---
+
+## 🔐 Seguridad
+
+La API utiliza autenticación JWT Bearer. El token incluye claims de identificación, rol e IdCompany, permitiendo controlar el acceso a los endpoints protegidos.
+
+El secret utilizado para firmar los tokens JWT se configura mediante variables de entorno en Azure App Service.
+
+### 🔑 Variables principales
+
+- AutenticacionService__SecretForKey
+- AutenticacionService__Issuer
+- AutenticacionService__Audience
+
+### 🌎 Configuración de API externa de feriados
+
+- HolidayApi__BaseUrl
+- HolidayApi__TimeoutSeconds
+
+### 📌 Ejemplo
+
+- HolidayApi__BaseUrl=https://api.argentinadatos.com/v1/feriados/
+- HolidayApi__TimeoutSeconds=10
+
+---
+
+## 🚀 CI/CD
+
+El repositorio cuenta con una pipeline de GitHub Actions que se ejecuta ante cada push a main.
+
+La pipeline realiza:
+
+1. 📥 Checkout del repositorio.
+2. ⚙️ Instalación/configuración de .NET.
+3. 🧪 Build de la solución en modo Release.
+4. 📦 Publicación del proyecto Web API.
+5. 🗂️ Generación de artefacto.
+6. 🔐 Login en Azure.
+7. 🚀 Deploy automático a Azure App Service.
+
+Workflow:
+
+- .github/workflows/main_plataforma-autogestion-tpi.yml
+
+---
+
+## 🗄️ Persistencia
+
+La persistencia se implementa con Entity Framework Core utilizando el enfoque Code First.
+
+Incluye:
+
+- ApplicationDbContext
+- DbSets para entidades principales
+- Configuración de relaciones
+- Filtros globales por empresa
+- Migraciones de EF Core
+- Snapshot del modelo
+
+### 📌 Entidades principales
+
+- Company
+- User
+- Workday
+- Liquidation
+- DetailLiquidation
+
+---
+
+## 🧭 Endpoints Principales
+
+### 🔐 Autenticación
+
+POST /api/Auth/login
+
+### 🏢 Empresas
+
+GET /api/Company
+
+POST /api/Company
+
+GET /api/Company/{id}
+
+PUT /api/Company/{id}
+
+DELETE /api/Company/{id}
+
+### 👥 Usuarios
+
+GET /api/User/Mi Empresa
+
+GET /api/User/company/{companyId}
+
+GET /api/User/me
+
+PUT /api/User/me
+
+POST /api/User
+
+DELETE /api/User/{id}
+
+### ⏱️ Jornadas
+
+GET /api/Workday/mis-horas
+
+GET /api/Workday/PendientesDeAprobacion
+
+POST /api/Workday/cargar
+
+PUT /api/Workday/aprobar/{id}
+
+PUT /api/Workday/rechazar/{id}
+
+### 💰 Liquidaciones
+
+GET /api/Liquidation/empleado/{userId}/simular
+
+POST /api/Liquidation/simular
+
+POST /api/Liquidation/cerrar-mes
+
+GET /api/Liquidation/cierre-mes
+
+DELETE /api/Liquidation/{id}
+
+### 📑 Reportes
+
+GET /api/reports/recibos/{id}
+
+GET /api/reports/banco/{id}
+
+### 🌎 Feriados
+
+GET /api/Holidays/{year}
+
+GET /api/Holidays/check?date=yyyy-MM-dd
+
+---
+
+## 🧪 Ejecución Local
+
+1. Clonar el repositorio.
+
+git clone https://github.com/Francesco-Dagostino/Plataforma-Autogestion.git
+
+2. Restaurar dependencias.
+
+dotnet restore
+
+3. Configurar variables locales o appsettings.Development.json.
+
+4. Ejecutar la API.
+
+dotnet run --project PlataformaAutogestion.Api
+
+5. Abrir Swagger.
+
+https://localhost:{puerto}/swagger
+
+---
+
+## ✅ Cumplimiento de Requerimientos del TPI
+
+- [x] 🧱 Proyectos organizados con Clean Architecture.
+- [x] 🧩 Entidades de dominio declaradas.
+- [x] 🗄️ Repositorios definidos e implementados.
+- [x] ⚙️ Servicios definidos e implementados.
+- [x] 🔌 Inyección de dependencias configurada en Program.cs.
+- [x] 🧬 ApplicationDbContext configurado en infraestructura.
+- [x] 📦 Migraciones y snapshot de EF Core presentes.
+- [x] 🌐 Controladores definidos con servicios inyectados.
+- [x] 🔐 Authentication Controller funcional.
+- [x] 🛡️ Autenticación JWT funcional.
+- [x] 🗄️ Persistencia operativa en base de datos relacional con EF Core Code First.
+- [x] 🧰 Patrón Generic Repository implementado.
+- [x] 🚀 Pipeline CI/CD con GitHub Actions hacia Azure.
+- [x] 🌎 Consumo de servicio externo mediante HttpClientFactory.
+- [x] 🔑 Secret JWT configurado mediante variables de entorno en Azure.
