@@ -50,5 +50,16 @@ namespace PlataformaAutogestion.Infrastructure.Data
                     .ThenInclude(d => d.User)
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
+        public async Task DeleteWithDetailsAsync(Liquidation liquidation)
+        {
+            var details = await _context.Set<DetailLiquidation>()
+                .Where(d => d.IdLiquidation == liquidation.Id)
+                .ToListAsync();
+
+            _context.Set<DetailLiquidation>().RemoveRange(details);
+            _context.Set<Liquidation>().Remove(liquidation);
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

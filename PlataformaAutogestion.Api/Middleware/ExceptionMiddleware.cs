@@ -60,8 +60,7 @@ namespace PlataformaAutogestion.Api.Middleware
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString()); //cambiar aca!!!
-
+                
                 await HandleExceptionAsync(
                     context,
                     HttpStatusCode.InternalServerError,

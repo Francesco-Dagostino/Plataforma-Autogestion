@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Interfaces;
 
 namespace PlataformaAutogestion.Api.Controllers
 {
     [ApiController]
     [Route("api/reports")]
+    [Authorize(Roles = "Admin")]
     public class ReportsController : ControllerBase
     {
         private readonly IReporteService _reporteService;

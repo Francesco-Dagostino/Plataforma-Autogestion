@@ -55,7 +55,6 @@ builder.Services.AddSwaggerGen(setupAction =>
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
-Console.WriteLine($"ConnectionString: {connectionString}");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure()));
@@ -131,10 +130,6 @@ app.UseHttpsRedirection();
 app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
 
-//cambiar aqui!"!
-Console.WriteLine($"Secret: {builder.Configuration["AutenticacionService:SecretForKey"]}");
-Console.WriteLine($"Issuer: {builder.Configuration["AutenticacionService:Issuer"]}");
-Console.WriteLine($"Audience: {builder.Configuration["AutenticacionService:Audience"]}");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

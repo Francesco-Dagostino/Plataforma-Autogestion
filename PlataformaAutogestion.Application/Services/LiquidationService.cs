@@ -199,7 +199,7 @@ namespace PlataformaAutogestion.Application.Services
             if (liquidation.IdCompany != companyId)
                 throw new UnauthorizedAccessException("La liquidación no pertenece a tu empresa.");
 
-            await _liquidationRepository.DeleteAsync(liquidation);
+            await _liquidationRepository.DeleteWithDetailsAsync(liquidation);
         }
     }
 }

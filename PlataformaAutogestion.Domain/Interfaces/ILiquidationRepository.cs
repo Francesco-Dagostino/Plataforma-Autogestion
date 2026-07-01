@@ -9,8 +9,8 @@ namespace PlataformaAutogestion.Domain.Interfaces
         Task<List<Liquidation>> GetAllByCompanyAsync(int companyId);
         Task<bool> ExistsLiquidationForPeriodAsync(int companyId, int month, int year);
         Task<Liquidation?> GetByPeriodAsync(int companyId, int month, int year);
-
         Task<Liquidation?> GetByIdWithDetailsAsync(int id);
+        Task DeleteWithDetailsAsync(Liquidation liquidation);
 
     }
 }
