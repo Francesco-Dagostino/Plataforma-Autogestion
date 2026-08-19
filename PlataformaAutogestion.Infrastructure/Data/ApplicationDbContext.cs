@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http; // <-- AGREGADO
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -14,46 +14,57 @@ namespace PlataformaAutogestion.Infrastructure.Data
     public class ApplicationDbContext : DbContext
     {
         private readonly bool isTestingEnvironment;
-        private readonly IHttpContextAccessor _httpContextAccessor; // <-- AGREGADO
+        // Permite obtener información de la request actual, como usuario logueado y claims.
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        // Modificado constructor para recibir IHttpContextAccessor
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
-            IHttpContextAccessor httpContextAccessor, // <-- AGREGADO
+            // Acceso al HttpContext para leer datos del usuario autenticado.
+            IHttpContextAccessor httpContextAccessor,
             bool isTestingEnvironment = false) : base(options)
         {
             _httpContextAccessor = httpContextAccessor;
             this.isTestingEnvironment = isTestingEnvironment;
         }
 
+        //Tablas
         public DbSet<Company> Companys { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Workday> Workdays { get; set; }
         public DbSet<Liquidation> Liquidations { get; set; }
         public DbSet<DetailLiquidation> Details { get; set; }
 
-        // Método auxiliar para extraer el IdCompany del token JWT
+        // Método para extraer el IdCompany del token JWT.
         private int? GetCurrentCompanyId()
         {
             var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("IdCompany")?.Value;
+            // Muestra por consola la empresa detectada, útil para depuración.
             Console.WriteLine($">>> IdCompany del token: {claim}");
+            // Convierte el claim a int; si no existe o no es válido, devuelve 0.
             return int.TryParse(claim, out var id) ? id : 0;
         }
+
+        // Método para obtener el rol del usuario desde el token JWT.
         private string? GetCurrentRole()
         {
             return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
+        //Entidades a tablas
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configuración de Filtros Globales
+            //filtros
             modelBuilder.Entity<User>().HasQueryFilter(u => GetCurrentRole() == "SuperAdmin" || u.IdCompany == GetCurrentCompanyId());
+            // Filtra jornadas por la empresa del usuario logueado.
             modelBuilder.Entity<Workday>().HasQueryFilter(w => w.IdCompany == GetCurrentCompanyId());
+            // Filtra liquidaciones por la empresa del usuario logueado.
             modelBuilder.Entity<Liquidation>().HasQueryFilter(l => l.IdCompany == GetCurrentCompanyId());
+            // Filtra detalles de liquidación por la empresa del usuario logueado.
             modelBuilder.Entity<DetailLiquidation>().HasQueryFilter(dl => dl.IdCompany == GetCurrentCompanyId());
 
+            //// Configuración de las entidades.
             modelBuilder.Entity<Company>(entity =>
             {
                 entity.ToTable("Companys");
@@ -64,6 +75,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(c => c.ParameterSystem).IsRequired();
             });
 
+            
             modelBuilder.Entity<User>(entity =>
             {
                 entity.ToTable("Users");
@@ -75,11 +87,13 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(u => u.CreationDate).IsRequired();
                 entity.Property(u => u.role).IsRequired();
 
+                // Relaciónes
                 entity.HasOne(u => u.Company)
                     .WithMany(c => c.users)
                     .HasForeignKey(u => u.IdCompany)
                     .IsRequired(false);
             });
+
 
             modelBuilder.Entity<Workday>(entity =>
             {
@@ -91,10 +105,12 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(w => w.DateApproval).IsRequired(false);
                 entity.Property(w => w.Estado).IsRequired();
 
+                // Relaciónes
                 entity.HasOne(w => w.Company)
                     .WithMany(c => c.workdays)
                     .HasForeignKey(w => w.IdCompany);
 
+                // Relación con usuario.
                 entity.HasOne(w => w.Usuario)
                     .WithMany(u => u.workdays)
                     .HasForeignKey(w => w.IdUser);
@@ -107,6 +123,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(l => l.LiquidationDate).IsRequired();
                 entity.Property(l => l.Total).IsRequired();
 
+                // Relaciónes
                 entity.HasOne(l => l.Company)
                     .WithMany(c => c.liquidations)
                     .HasForeignKey(l => l.IdCompany);
@@ -119,6 +136,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(dl => dl.TotalHours).IsRequired();
                 entity.Property(dl => dl.Amount).IsRequired();
 
+                // Relaciónes
                 entity.HasOne(dl => dl.Liquidation)
                     .WithMany(l => l.detailLiquidations)
                     .HasForeignKey(dl => dl.IdLiquidation);
@@ -132,37 +150,49 @@ namespace PlataformaAutogestion.Infrastructure.Data
                     .HasForeignKey(dl => dl.IdUser);
             });
 
+            // Inserta datos iniciales.
             modelBuilder.Entity<Company>().HasData(CreateCompanyDataSeed());
             modelBuilder.Entity<User>().HasData(CreateUserDataSeed());
 
+           
             foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {
+                // Evita borrados en cascada automáticos para no eliminar datos relacionados sin control.
                 relationship.DeleteBehavior = DeleteBehavior.NoAction;
             }
         }
 
-        // ... (Tus métodos Seed se mantienen iguales)
+        //metodo para cargar empresas y usuarios
         private Company[] CreateCompanyDataSeed() { /* ... */ return new Company[] { }; }
         private User[] CreateUserDataSeed() { /* ... */ return new User[] { }; }
     }
 
+    // comandos de migracion
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
+        
         public ApplicationDbContext CreateDbContext(string[] args)
         {
+            // Obtiene la carpeta actual desde donde se ejecuta el comando.
             var directory = Directory.GetCurrentDirectory();
+            // Busca la carpeta del proyecto API para encontrar appsettings.json.
             var apiPath = Path.Combine(directory, "PlataformaAutogestion.Api");
+            // Si no encuentra la API en la carpeta actual, prueba una ruta relativa alternativa.
             if (!Directory.Exists(apiPath)) apiPath = Path.Combine(directory, "../PlataformaAutogestion.Api");
 
+            // Lee appsettings.json para obtener la connection string.
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(apiPath))
                 .AddJsonFile("appsettings.json", optional: false)
                 .Build();
 
+            // Construye las opciones del DbContext.
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), sqlOptions => sqlOptions.EnableRetryOnFailure());
+            // Configura SQL Server usando la connection string DefaultConnection.
+            optionsBuilder.UseNpgsql(
+                configuration.GetConnectionString("DefaultConnection"));
 
-            // Pasamos null para el IHttpContextAccessor en tiempo de diseño
+            // En migraciones no hay una request HTTP real, por eso no hay usuario logueado.
             return new ApplicationDbContext(optionsBuilder.Options, null!, false);
         }
     }

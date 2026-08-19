@@ -53,11 +53,11 @@ builder.Services.AddSwaggerGen(setupAction =>
         });
 });
 
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!; //conexcion a mi bd, declarada en appseting.json
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure()));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
@@ -116,6 +116,16 @@ builder.Services.AddScoped<IReporteService, ReporteService>();
 
 #endregion
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendLocal", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -127,7 +137,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 
-app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+app.UseCors("FrontendLocal");
 
 
 app.UseAuthentication();

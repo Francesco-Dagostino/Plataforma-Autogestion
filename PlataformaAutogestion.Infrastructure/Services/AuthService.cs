@@ -15,6 +15,7 @@ namespace PlataformaAutogestion.Infrastructure.Services
     public class AuthService : IAuthService
     {
         private readonly ApplicationDbContext _context;
+        // Permite obtener información de la request actual, como usuario logueado y claims.
         private readonly AuthServiceOptions _options;
 
         public AuthService(

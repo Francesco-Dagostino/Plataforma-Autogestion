@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace PlataformaAutogestion.Infrastructure.Data.Migrations
+namespace PlataformaAutogestion.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,12 +16,12 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                 name: "Companys",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Cuit = table.Column<long>(type: "bigint", nullable: false),
-                    DateHigh = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ParameterSystem = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    DateHigh = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ParameterSystem = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -31,13 +32,13 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                 name: "Liquidations",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    LiquidationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ExecutionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    IsClosed = table.Column<bool>(type: "bit", nullable: false),
-                    IdCompany = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    LiquidationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExecutionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Total = table.Column<decimal>(type: "numeric", nullable: false),
+                    IsClosed = table.Column<bool>(type: "boolean", nullable: false),
+                    IdCompany = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -53,15 +54,15 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    role = table.Column<int>(type: "int", nullable: false),
-                    IdCompany = table.Column<int>(type: "int", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    UserName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Password = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    role = table.Column<int>(type: "integer", nullable: false),
+                    IdCompany = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -77,13 +78,13 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                 name: "Details",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TotalHours = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    IdLiquidation = table.Column<int>(type: "int", nullable: false),
-                    IdCompany = table.Column<int>(type: "int", nullable: false),
-                    IdUser = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TotalHours = table.Column<decimal>(type: "numeric", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    IdLiquidation = table.Column<int>(type: "integer", nullable: false),
+                    IdCompany = table.Column<int>(type: "integer", nullable: false),
+                    IdUser = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -109,13 +110,13 @@ namespace PlataformaAutogestion.Infrastructure.Data.Migrations
                 name: "Workdays",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    HoursWorked = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DateEntry = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DateApproval = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Estado = table.Column<int>(type: "int", nullable: false),
-                    IdCompany = table.Column<int>(type: "int", nullable: false),
-                    IdUser = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    HoursWorked = table.Column<decimal>(type: "numeric", nullable: false),
+                    DateEntry = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateApproval = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Estado = table.Column<int>(type: "integer", nullable: false),
+                    IdCompany = table.Column<int>(type: "integer", nullable: false),
+                    IdUser = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
