@@ -1,4 +1,4 @@
-﻿using PlataformaAutogestion.Application.Interfaces;
+using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models;
 using PlataformaAutogestion.Application.Models.Request;
 using PlataformaAutogestion.Domain.Entities;
@@ -118,10 +118,14 @@ namespace PlataformaAutogestion.Application.Services
             await _userRepository.UpdateAsync(user);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, int? companyId = null)
         {
             var user = await _userRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("User", id);
+
+            // Verifica aislamiento multitenant cuando lo llama un Admin
+            if (companyId.HasValue && user.IdCompany != companyId.Value)
+                throw new OperationNotAllowedException("No puedes eliminar usuarios de otra empresa.");
 
             await _userRepository.DeleteAsync(user);
         }

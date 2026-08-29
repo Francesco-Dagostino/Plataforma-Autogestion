@@ -1,4 +1,4 @@
-﻿using PlataformaAutogestion.Application.Interfaces;
+using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models.Request;
 using PlataformaAutogestion.Application.Models.Response;
 using PlataformaAutogestion.Domain.Entities;
@@ -33,7 +33,7 @@ namespace PlataformaAutogestion.Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<SimulacionEmpleadoResponse> SimularSueldoEmpleadoAsync(int userId, int month, int year)
+        public async Task<SimulacionEmpleadoResponse> SimularSueldoEmpleadoAsync(int userId, int month, int year, int? companyId = null)
         {
             if (month < 1 || month > 12)
                 throw new InvalidOperationException("Mes inválido.");
@@ -43,6 +43,10 @@ namespace PlataformaAutogestion.Application.Services
 
             if (user.IdCompany == null)
                 throw new InvalidOperationException("El usuario no tiene empresa asignada.");
+
+            // Previene IDOR: Admin solo puede simular para empleados de su empresa
+            if (companyId.HasValue && user.IdCompany.Value != companyId.Value)
+                throw new UnauthorizedAccessException("El empleado no pertenece a tu empresa.");
 
             var company = await _companyRepository.GetByIdAsync(user.IdCompany.Value)
                 ?? throw new EntityNotFoundException("Company", user.IdCompany.Value);

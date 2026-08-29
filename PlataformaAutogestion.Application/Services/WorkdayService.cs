@@ -1,4 +1,4 @@
-﻿using PlataformaAutogestion.Application.Interfaces;
+using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models;
 using PlataformaAutogestion.Application.Models.Request;
 using PlataformaAutogestion.Domain.Entities;
@@ -67,10 +67,14 @@ namespace PlataformaAutogestion.Application.Services
             return WorkdayDTO.FromEntity(workday);
         }
 
-        public async Task ApproveAsync(string id)
+        public async Task ApproveAsync(string id, int companyId)
         {
             var workday = await _workdayRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("Workday", id);
+
+            // Verifica que la jornada pertenezca a la empresa del admin
+            if (workday.IdCompany != companyId)
+                throw new UnauthorizedAccessException("La jornada no pertenece a tu empresa.");
 
             if (workday.Estado != StatusDay.Pendiente)
                 throw new InvalidOperationException("Solo se pueden aprobar jornadas en estado Pendiente.");
@@ -81,10 +85,14 @@ namespace PlataformaAutogestion.Application.Services
             await _workdayRepository.UpdateAsync(workday);
         }
 
-        public async Task RejectAsync(string id)
+        public async Task RejectAsync(string id, int companyId)
         {
             var workday = await _workdayRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("Workday", id);
+
+            // Verifica que la jornada pertenezca a la empresa del admin
+            if (workday.IdCompany != companyId)
+                throw new UnauthorizedAccessException("La jornada no pertenece a tu empresa.");
 
             if (workday.Estado != StatusDay.Pendiente)
                 throw new InvalidOperationException("Solo se pueden rechazar jornadas en estado Pendiente.");

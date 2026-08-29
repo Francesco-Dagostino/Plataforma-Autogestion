@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models.Request;
@@ -35,7 +35,7 @@ namespace PlataformaAutogestion.Api.Controllers
             return Ok(workdays);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Empleado")]
         [HttpPost("cargar")]
         public async Task<IActionResult> Add(WorkdayCreateRequest request)
         {
@@ -48,7 +48,8 @@ namespace PlataformaAutogestion.Api.Controllers
         [HttpPut("aprobar/{id}")]
         public async Task<IActionResult> Approve(string id)
         {
-            await _workdayService.ApproveAsync(id);
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+            await _workdayService.ApproveAsync(id, companyId);
             return NoContent();
         }
 
@@ -56,7 +57,8 @@ namespace PlataformaAutogestion.Api.Controllers
         [HttpPut("rechazar/{id}")]
         public async Task<IActionResult> Reject(string id)
         {
-            await _workdayService.RejectAsync(id);
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+            await _workdayService.RejectAsync(id, companyId);
             return NoContent();
         }
     }

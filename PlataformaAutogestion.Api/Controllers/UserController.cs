@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Interfaces;
@@ -24,8 +24,19 @@ namespace PlataformaAutogestion.Api.Controllers
         [HttpGet("Mi Empresa")]
         public async Task<IActionResult> GetAll()
         {
-            var users = await _userService.GetAllAsync();
-            return Ok(users);
+            var isAdmin = User.IsInRole("Admin");
+
+            if (isAdmin)
+            {
+                // Admin solo ve usuarios de su empresa
+                var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+                var users = await _userService.GetAllByCompanyAsync(companyId);
+                return Ok(users);
+            }
+
+            // SuperAdmin ve todos
+            var allUsers = await _userService.GetAllAsync();
+            return Ok(allUsers);
         }
 
         [Authorize(Roles = "SuperAdmin")]
@@ -104,12 +115,21 @@ namespace PlataformaAutogestion.Api.Controllers
         {
             try
             {
-                await _userService.DeleteAsync(id);
+                // Admin pasa su companyId para validar tenant
+                int? companyId = User.IsInRole("Admin")
+                    ? int.Parse(User.FindFirst("IdCompany")!.Value)
+                    : null;
+
+                await _userService.DeleteAsync(id, companyId);
                 return NoContent();
             }
             catch (EntityNotFoundException ex)
             {
                 return NotFound(ex.Message);
+            }
+            catch (OperationNotAllowedException)
+            {
+                return Forbid();
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using PlataformaAutogestion.Application.Models;
+using PlataformaAutogestion.Application.Models;
 using PlataformaAutogestion.Application.Models.Request;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace PlataformaAutogestion.Application.Interfaces
         Task<UserDTO> AddByAdminAsync(UserCreateByAdminRequest request, int companyId);
         Task UpdateRoleAsync(int id, UserUpdateRoleRequest request);
         Task UpdateProfileAsync(int id, UserUpdateProfileRequest request);
-        Task DeleteAsync(int id);
+        Task DeleteAsync(int id, int? companyId = null);
     }
 }
 

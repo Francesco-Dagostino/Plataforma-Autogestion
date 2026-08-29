@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models.Request;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PlataformaAutogestion.Api.Controllers
@@ -32,8 +33,25 @@ namespace PlataformaAutogestion.Api.Controllers
         {
             try
             {
-                var simulacion = await _liquidationService.SimularSueldoEmpleadoAsync(userId, month, year);
+                int? companyId = null;
+
+                if (User.IsInRole("Empleado"))
+                {
+                    // Previene IDOR: empleado solo simula su propio sueldo
+                    userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                }
+                else if (User.IsInRole("Admin"))
+                {
+                    // Admin solo puede simular empleados de su empresa
+                    companyId = GetCompanyIdFromToken();
+                }
+
+                var simulacion = await _liquidationService.SimularSueldoEmpleadoAsync(userId, month, year, companyId);
                 return Ok(simulacion);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
             catch (Exception ex)
             {
