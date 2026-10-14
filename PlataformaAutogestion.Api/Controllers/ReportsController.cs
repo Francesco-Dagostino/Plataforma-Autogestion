@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Interfaces;
+using System.Security.Claims;
 
 namespace PlataformaAutogestion.Api.Controllers
 {
     [ApiController]
     [Route("api/reports")]
-    [Authorize(Roles = "Admin")]
     public class ReportsController : ControllerBase
     {
         private readonly IReporteService _reporteService;
@@ -27,6 +27,16 @@ namespace PlataformaAutogestion.Api.Controllers
                 "application/pdf",
                 $"recibos_{id}.pdf"
             );
+        }
+
+        [Authorize(Roles = "Empleado")]
+        [HttpGet("mi-recibo/{detailId:int}")]
+        public async Task<IActionResult> GenerarMiRecibo(int detailId)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var pdf = await _reporteService.GenerarPdfReciboEmpleadoAsync(detailId, userId);
+
+            return File(pdf, "application/pdf", $"recibo_{detailId}.pdf");
         }
 
         [Authorize(Roles = "Admin")]

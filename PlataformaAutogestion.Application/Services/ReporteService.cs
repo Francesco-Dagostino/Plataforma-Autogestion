@@ -1,6 +1,7 @@
 ﻿using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Domain.Exceptions;
 using PlataformaAutogestion.Domain.Interfaces;
+using PlataformaAutogestion.Domain.Entities;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -12,10 +13,12 @@ namespace PlataformaAutogestion.Application.Services
     public class ReporteService : IReporteService
     {
         private readonly ILiquidationRepository _liquidationRepository;
+        private readonly IDetailLiquidationRepositoy _detailLiquidationRepository;
 
-        public ReporteService(ILiquidationRepository liquidationRepository)
+        public ReporteService(ILiquidationRepository liquidationRepository, IDetailLiquidationRepositoy detailLiquidationRepository)
         {
             _liquidationRepository = liquidationRepository;
+            _detailLiquidationRepository = detailLiquidationRepository;
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
@@ -27,8 +30,31 @@ namespace PlataformaAutogestion.Application.Services
             if (liquidation.detailLiquidations == null || !liquidation.detailLiquidations.Any())
                 throw new InvalidOperationException("La liquidación no tiene detalles para generar recibos.");
 
+            return GeneratePdf(liquidation.LiquidationDate, liquidation.detailLiquidations.ToList());
+        }
+
+        public async Task<byte[]> GenerarPdfReciboEmpleadoAsync(int detailId, int userId)
+        {
+            var detail = await _detailLiquidationRepository.GetByIdAsync(detailId);
+            if (detail == null || detail.IdUser != userId)
+                throw new EntityNotFoundException("Recibo", detailId);
+
+            var liquidation = await _liquidationRepository.GetByIdWithDetailsAsync(detail.IdLiquidation)
+                ?? throw new EntityNotFoundException("Liquidation", detail.IdLiquidation);
+
+            if (!liquidation.IsClosed)
+                throw new InvalidOperationException("El recibo solo está disponible para liquidaciones cerradas.");
+
+            var employeeDetail = liquidation.detailLiquidations
+                .SingleOrDefault(item => item.Id == detailId && item.IdUser == userId)
+                ?? throw new EntityNotFoundException("Recibo", detailId);
+
+            return GeneratePdf(liquidation.LiquidationDate, new List<DetailLiquidation> { employeeDetail });
+        }
+
+        private static byte[] GeneratePdf(DateTime liquidationDate, List<DetailLiquidation> detalles)
+        {
             var culture = CultureInfo.GetCultureInfo("es-AR");
-            var detalles = liquidation.detailLiquidations.ToList();
 
             var document = Document.Create(container =>
             {
@@ -54,7 +80,7 @@ namespace PlataformaAutogestion.Application.Services
                             {
                                 recibo.Spacing(10);
 
-                                recibo.Item().Text($"Período: {liquidation.LiquidationDate:MM/yyyy}");
+                                recibo.Item().Text($"Período: {liquidationDate:MM/yyyy}");
                                 recibo.Item().Text($"Empleado: {detalle.User?.Name ?? "N/A"}");
                                 recibo.Item().Text($"Legajo (Id Usuario): {detalle.IdUser}");
                                 recibo.Item().LineHorizontal(1);

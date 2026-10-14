@@ -18,13 +18,17 @@ namespace PlataformaAutogestion.Infrastructure.Data
         public async Task<List<DetailLiquidation>> GetByUserAsync(int userId)
         {
             return await _context.Details
+                .Include(d => d.Liquidation)
                 .Where(d => d.IdUser == userId)
+                .Where(d => d.Liquidation.IsClosed)
+                .OrderByDescending(d => d.Liquidation.LiquidationDate)
                 .ToListAsync();
         }
 
         public async Task<List<DetailLiquidation>> GetByLiquidationAsync(int idLiquidation, int idCompany)
         {
             return await _context.Details
+                .Include(d => d.Liquidation)
                 .Where(d => d.IdLiquidation == idLiquidation && d.IdCompany == idCompany)
                 .ToListAsync();
         }

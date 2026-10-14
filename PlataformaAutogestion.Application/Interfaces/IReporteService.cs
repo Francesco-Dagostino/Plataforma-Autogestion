@@ -7,6 +7,7 @@ namespace PlataformaAutogestion.Application.Interfaces
     public interface IReporteService
     {
         Task<byte[]> GenerarPdfRecibosAsync(int liquidationId);
+        Task<byte[]> GenerarPdfReciboEmpleadoAsync(int detailId, int userId);
         Task<byte[]> GenerarTxtBancoAsync(int liquidationId);
     }
 

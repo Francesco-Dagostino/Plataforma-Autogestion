@@ -18,6 +18,8 @@ namespace PlataformaAutogestion.Application.Models
         [Required]
         public int IdLiquidation { get; set; }
 
+        public DateTime LiquidationDate { get; set; }
+
         [Required]
         public int IdUser { get; set; }
 
@@ -32,6 +34,7 @@ namespace PlataformaAutogestion.Application.Models
                 TotalHours = entity.TotalHours,
                 Amount = entity.Amount,
                 IdLiquidation = entity.IdLiquidation,
+                LiquidationDate = entity.Liquidation.LiquidationDate,
                 IdUser = entity.IdUser,
                 IdCompany = entity.IdCompany
             };
