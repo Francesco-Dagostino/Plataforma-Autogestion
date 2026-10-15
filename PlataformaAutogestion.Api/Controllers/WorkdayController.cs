@@ -35,7 +35,7 @@ namespace PlataformaAutogestion.Api.Controllers
             return Ok(workdays);
         }
 
-        [Authorize(Roles = "Empleado")]
+        [Authorize(Roles = "Empleado,Admin")]
         [HttpPost("cargar")]
         public async Task<IActionResult> Add(WorkdayCreateRequest request)
         {
