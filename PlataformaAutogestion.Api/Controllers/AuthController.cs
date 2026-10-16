@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Models.Request;
 using PlataformaAutogestion.Domain.Interfaces;
 
@@ -24,5 +24,19 @@ namespace PlataformaAutogestion.Api.Controllers
 
             return Ok(new { token });
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+        {
+            await _authService.ForgotPasswordAsync(request.Email);
+            return Ok(new { message = "Te enviamos un correo para restablecer tu contraseña." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+        {
+            await _authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
+            return Ok(new { message = "Tu contraseña fue actualizada correctamente." });
+        }
     }
-}
+}

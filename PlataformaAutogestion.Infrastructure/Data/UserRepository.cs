@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PlataformaAutogestion.Domain.Entities;
 using PlataformaAutogestion.Domain.Interfaces;
 using System;
@@ -17,13 +17,17 @@ namespace PlataformaAutogestion.Infrastructure.Data
 
         public async Task<User?> GetByUserNameAsync(string userName)
         {
+            // Ignora filtros de tenant porque se llama antes de tener sesión/token
             return await _context.Users
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(u => u.UserName == userName);
         }
 
         public async Task<User?> GetByEmailAsync(string email)
         {
+            // Ignora filtros de tenant porque la recuperación es pública
             return await _context.Users
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
 

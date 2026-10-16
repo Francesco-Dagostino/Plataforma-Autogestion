@@ -33,6 +33,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
         public DbSet<Workday> Workdays { get; set; }
         public DbSet<Liquidation> Liquidations { get; set; }
         public DbSet<DetailLiquidation> Details { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
         // Método para extraer el IdCompany del token JWT.
         private int? GetCurrentCompanyId()
@@ -148,6 +149,22 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.HasOne(dl => dl.User)
                     .WithMany(u => u.detailLiquidations)
                     .HasForeignKey(dl => dl.IdUser);
+            });
+
+            modelBuilder.Entity<PasswordResetToken>(entity =>
+            {
+                entity.ToTable("PasswordResetTokens");
+                entity.HasKey(t => t.Id);
+                entity.Property(t => t.TokenHash).IsRequired().HasMaxLength(128);
+                entity.Property(t => t.ExpiresAt).IsRequired();
+                entity.Property(t => t.CreatedAt).IsRequired();
+                entity.Property(t => t.Used).IsRequired();
+
+                entity.HasIndex(t => t.TokenHash);
+
+                entity.HasOne(t => t.User)
+                    .WithMany()
+                    .HasForeignKey(t => t.UserId);
             });
 
             // Inserta datos iniciales.
