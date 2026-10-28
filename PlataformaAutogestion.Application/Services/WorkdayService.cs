@@ -38,6 +38,12 @@ namespace PlataformaAutogestion.Application.Services
             return workdays.Select(WorkdayDTO.FromEntity).ToList();
         }
 
+        public async Task<List<WorkdayDTO>> GetResolvedByCompanyAsync(int companyId)
+        {
+            var workdays = await _workdayRepository.GetResolvedByCompanyAsync(companyId);
+            return workdays.Select(WorkdayDTO.FromEntity).ToList();
+        }
+
         public async Task<WorkdayDTO> AddAsync(WorkdayCreateRequest request, int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId)
@@ -52,6 +58,8 @@ namespace PlataformaAutogestion.Application.Services
             if (await _holidayService.IsHolidayAsync(request.DateEntry))
                 throw new OperationNotAllowedException("Ese día es o fue feriado no laboral.");
 
+            await EnsureNoDuplicateDayAsync(userId, request.DateEntry);
+
             var workday = new Workday
             {
                 Id = Guid.NewGuid().ToString(),
@@ -64,6 +72,36 @@ namespace PlataformaAutogestion.Application.Services
             };
 
             await _workdayRepository.AddAsync(workday);
+            return WorkdayDTO.FromEntity(workday);
+        }
+
+        private async Task EnsureNoDuplicateDayAsync(int userId, DateTime date, string? excludeId = null)
+        {
+            var userWorkdays = await _workdayRepository.GetByUserAsync(userId);
+            if (userWorkdays.Any(w => w.Id != excludeId && w.DateEntry.Date == date.Date && w.Estado != StatusDay.Desaprobada))
+                throw new OperationNotAllowedException("Ya registraste horas para ese día.");
+        }
+
+        public async Task<WorkdayDTO> UpdateAsync(string id, WorkdayCreateRequest request, int userId)
+        {
+            var workday = await _workdayRepository.GetByIdAsync(id)
+                ?? throw new EntityNotFoundException("Workday", id);
+
+            if (workday.IdUser != userId)
+                throw new ForbiddenException();
+
+            if (workday.Estado != StatusDay.Pendiente)
+                throw new InvalidOperationException("Solo se pueden editar jornadas en estado Pendiente.");
+
+            if (await _holidayService.IsHolidayAsync(request.DateEntry))
+                throw new OperationNotAllowedException("Ese día es o fue feriado no laboral.");
+
+            await EnsureNoDuplicateDayAsync(userId, request.DateEntry, id);
+
+            workday.HoursWorked = request.HoursWorked;
+            workday.DateEntry = request.DateEntry;
+
+            await _workdayRepository.UpdateAsync(workday);
             return WorkdayDTO.FromEntity(workday);
         }
 
@@ -85,7 +123,7 @@ namespace PlataformaAutogestion.Application.Services
             await _workdayRepository.UpdateAsync(workday);
         }
 
-        public async Task RejectAsync(string id, int companyId)
+        public async Task RejectAsync(string id, int companyId, string motivoRechazo)
         {
             var workday = await _workdayRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("Workday", id);
@@ -98,6 +136,7 @@ namespace PlataformaAutogestion.Application.Services
                 throw new InvalidOperationException("Solo se pueden rechazar jornadas en estado Pendiente.");
 
             workday.Estado = StatusDay.Desaprobada;
+            workday.MotivoRechazo = motivoRechazo;
             workday.DateApproval = DateTime.UtcNow;
 
             await _workdayRepository.UpdateAsync(workday);

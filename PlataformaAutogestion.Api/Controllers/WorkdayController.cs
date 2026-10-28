@@ -35,12 +35,30 @@ namespace PlataformaAutogestion.Api.Controllers
             return Ok(workdays);
         }
 
-        [Authorize(Roles = "Empleado,Admin")]
+        [Authorize(Roles = "Admin")]
+        [HttpGet("Historial")]
+        public async Task<IActionResult> GetResolved()
+        {
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+            var workdays = await _workdayService.GetResolvedByCompanyAsync(companyId);
+            return Ok(workdays);
+        }
+
+        [Authorize(Roles = "Empleado")]
         [HttpPost("cargar")]
         public async Task<IActionResult> Add(WorkdayCreateRequest request)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var workday = await _workdayService.AddAsync(request, userId);
+            return Ok(workday);
+        }
+
+        [Authorize(Roles = "Empleado")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Edit(string id, WorkdayCreateRequest request)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var workday = await _workdayService.UpdateAsync(id, request, userId);
             return Ok(workday);
         }
 
@@ -55,10 +73,10 @@ namespace PlataformaAutogestion.Api.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("rechazar/{id}")]
-        public async Task<IActionResult> Reject(string id)
+        public async Task<IActionResult> Reject(string id, [FromBody] RejectWorkdayRequest request)
         {
             var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
-            await _workdayService.RejectAsync(id, companyId);
+            await _workdayService.RejectAsync(id, companyId, request.MotivoRechazo.Trim());
             return NoContent();
         }
     }

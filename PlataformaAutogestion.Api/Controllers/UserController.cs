@@ -109,6 +109,15 @@ namespace PlataformaAutogestion.Api.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPut("empleado/{id}")]
+        public async Task<IActionResult> UpdateEmployee(int id, UserUpdateByAdminRequest request)
+        {
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+            await _userService.UpdateEmployeeAsync(id, request, companyId);
+            return NoContent();
+        }
+
         [Authorize(Roles = "Admin, SuperAdmin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
@@ -120,8 +129,8 @@ namespace PlataformaAutogestion.Api.Controllers
                     ? int.Parse(User.FindFirst("IdCompany")!.Value)
                     : null;
 
-                await _userService.DeleteAsync(id, companyId);
-                return NoContent();
+                var dadoDeBaja = await _userService.DeleteAsync(id, companyId);
+                return Ok(new { dadoDeBaja });
             }
             catch (EntityNotFoundException ex)
             {

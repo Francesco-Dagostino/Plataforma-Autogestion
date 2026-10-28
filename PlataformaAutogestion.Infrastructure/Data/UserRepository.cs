@@ -38,6 +38,13 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 .ToListAsync();
         }
 
+        public async Task<bool> HasRelatedDataAsync(int id)
+        {
+            // Ignora filtros de tenant: el SuperAdmin no pertenece a ninguna empresa
+            return await _context.Workdays.IgnoreQueryFilters().AnyAsync(w => w.IdUser == id)
+                || await _context.Details.IgnoreQueryFilters().AnyAsync(d => d.IdUser == id);
+        }
+
         public async Task<User?> GetByIdWithDetailsAsync(int id)
         {
             return await _context.Users

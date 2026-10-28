@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models.Request;
+using PlataformaAutogestion.Domain.Exceptions;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -112,12 +113,12 @@ namespace PlataformaAutogestion.Api.Controllers
                 var cierre = await _liquidationService.GetCierreMesAsync(companyId, month, year);
                 return Ok(cierre);
             }
+            catch (EntityNotFoundException)
+            {
+                return NotFound(new { error = $"No se encontró ninguna liquidación procesada para el período {month}/{year}." });
+            }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("No se encontró") || ex.Message.Contains("id 0"))
-                {
-                    return NotFound(new { error = $"No se encontró ninguna liquidación procesada para el período {month}/{year}." });
-                }
                 return BadRequest(new { error = ex.Message });
             }
         }

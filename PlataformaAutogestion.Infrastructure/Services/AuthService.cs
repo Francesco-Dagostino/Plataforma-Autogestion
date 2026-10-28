@@ -44,7 +44,7 @@ namespace PlataformaAutogestion.Infrastructure.Services
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(x => x.UserName == userName);
 
-            if (user == null || !PasswordHasher.Verify(password, user.Password))
+            if (user == null || !user.IsActive || !PasswordHasher.Verify(password, user.Password))
                 throw new UnauthorizedAccessException("Credenciales inválidas");
 
             if (!PasswordHasher.IsHashed(user.Password))
@@ -61,7 +61,7 @@ namespace PlataformaAutogestion.Infrastructure.Services
             var user = await _userRepository.GetByEmailAsync(email);
 
             // Valida que el email pertenezca a un usuario registrado
-            if (user == null)
+            if (user == null || !user.IsActive)
                 throw new InvalidOperationException("El correo ingresado no se encuentra registrado.");
 
             // Invalidar tokens anteriores

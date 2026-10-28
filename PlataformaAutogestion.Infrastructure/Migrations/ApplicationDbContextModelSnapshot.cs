@@ -166,6 +166,9 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
                     b.Property<int?>("IdCompany")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -214,6 +217,10 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
 
                     b.Property<int>("IdUser")
                         .HasColumnType("integer");
+
+                    b.Property<string>("MotivoRechazo")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
 
                     b.HasKey("Id");
 

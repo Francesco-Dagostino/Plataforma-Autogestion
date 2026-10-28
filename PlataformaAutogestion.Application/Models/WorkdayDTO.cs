@@ -19,6 +19,8 @@ namespace PlataformaAutogestion.Application.Models
 
         public DateTime? DateApproval { get; set; }
 
+        public string? MotivoRechazo { get; set; }
+
         [Required]
         public StatusDay Estado { get; set; }
 
@@ -38,6 +40,7 @@ namespace PlataformaAutogestion.Application.Models
             HoursWorked = w.HoursWorked,
             DateEntry = w.DateEntry,
             DateApproval = w.DateApproval,
+            MotivoRechazo = w.MotivoRechazo,
             Estado = w.Estado,
             IdUser = w.IdUser,
             UserName = w.Usuario?.Name ?? string.Empty,

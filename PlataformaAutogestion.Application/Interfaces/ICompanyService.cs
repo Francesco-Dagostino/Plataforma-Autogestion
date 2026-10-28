@@ -13,6 +13,8 @@ namespace PlataformaAutogestion.Application.Interfaces
         Task<List<CompanyDTO>> GetAllAsync();
         Task<CompanyDTO> GetByIdAsync(int id);
         Task UpdateAsync(int id, CompanyCreateRequest dto);
+        Task UpdateProfileAsync(int id, CompanyProfileRequest dto);
+        Task UpdateHourlyRateAsync(int id, CompanyHourlyRateRequest dto);
         Task DeleteAsync(int id);
     }
 }

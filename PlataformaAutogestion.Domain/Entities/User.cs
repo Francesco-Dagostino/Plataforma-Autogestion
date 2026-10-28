@@ -30,6 +30,9 @@ public class User
     [Required]
     public Roles role { get; set; }
 
+    // Baja lógica: conserva el historial de jornadas y liquidaciones del empleado.
+    public bool IsActive { get; set; } = true;
+
     public int? IdCompany { get; set; }
 
     public Company? Company { get; set; }

@@ -39,6 +39,15 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 .ToListAsync();
         }
 
+        public async Task<List<Workday>> GetResolvedByCompanyAsync(int companyId)
+        {
+            return await _context.Workdays
+                .Include(w => w.Usuario)
+                .Where(w => w.IdCompany == companyId && w.Estado != StatusDay.Pendiente)
+                .OrderByDescending(w => w.DateApproval)
+                .ToListAsync();
+        }
+
         public async Task<Workday?> GetByDateAndUserAsync(DateTime date, int userId)
         {
             return await _context.Workdays

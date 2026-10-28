@@ -39,8 +39,6 @@ namespace PlataformaAutogestion.Infrastructure.Data
         private int? GetCurrentCompanyId()
         {
             var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("IdCompany")?.Value;
-            // Muestra por consola la empresa detectada, útil para depuración.
-            Console.WriteLine($">>> IdCompany del token: {claim}");
             // Convierte el claim a int; si no existe o no es válido, devuelve 0.
             return int.TryParse(claim, out var id) ? id : 0;
         }
@@ -104,6 +102,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(w => w.HoursWorked).IsRequired();
                 entity.Property(w => w.DateEntry).IsRequired();
                 entity.Property(w => w.DateApproval).IsRequired(false);
+                entity.Property(w => w.MotivoRechazo).HasMaxLength(250);
                 entity.Property(w => w.Estado).IsRequired();
 
                 // Relaciónes

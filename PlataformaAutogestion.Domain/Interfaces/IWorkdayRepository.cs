@@ -10,5 +10,6 @@ namespace PlataformaAutogestion.Domain.Interfaces
         Task<List<Workday>> GetAllByCompanyAsync(int companyId);
         Task<List<Workday>> GetByUserAsync(int userId);
         Task<List<Workday>> GetPendingByCompanyAsync(int companyId);
+        Task<List<Workday>> GetResolvedByCompanyAsync(int companyId);
     }
 }

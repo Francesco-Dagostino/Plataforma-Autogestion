@@ -59,8 +59,13 @@ El proyecto está organizado bajo el patrón Clean Architecture, separando respo
   - SuperAdmin
   - Admin
   - Empleado
-- ⏱️ Carga de jornadas laborales.
-- ✅ Aprobación y rechazo de jornadas.
+- ⏱️ Carga de jornadas laborales y edición mientras estén pendientes.
+- 💵 Estimación del sueldo del mes para el Empleado.
+- 👥 Alta, edición y baja de empleados por parte del Admin.
+- ✅ Aprobación y rechazo de jornadas, con motivo de rechazo obligatorio.
+- 🕘 Historial de jornadas aprobadas y rechazadas para el Admin.
+- 🏭 Edición de los datos de la empresa y del valor por hora por parte de su Admin.
+- 🧑‍💼 Alta del Admin de cada empresa por parte del SuperAdmin.
 - 🧮 Simulación de liquidaciones.
 - 💰 Cierre mensual de liquidaciones.
 - 🗑️ Anulación de liquidaciones cerradas.
@@ -76,7 +81,15 @@ El proyecto está organizado bajo el patrón Clean Architecture, separando respo
 
 - 🏢 Cada usuario pertenece a una empresa, excepto el SuperAdmin.
 - 🧑‍💼 Los usuarios Admin gestionan información de su propia empresa.
+- ⏱️ Solo el Empleado carga horas; el Admin no carga horas propias, solo aprueba o rechaza las de sus empleados.
+- 🚫 No se puede registrar más de una jornada por día (salvo que la anterior haya sido rechazada).
 - ⏳ Las jornadas cargadas quedan en estado pendiente hasta ser aprobadas o rechazadas.
+- ✏️ El Empleado solo puede editar sus jornadas mientras estén en estado Pendiente.
+- 📝 Al rechazar una jornada es obligatorio indicar el motivo (de 3 a 250 caracteres).
+- 💲 El valor por hora de la empresa lo define su Admin; el SuperAdmin no lo modifica.
+- 🪪 El nombre de usuario y el correo son únicos en todo el sistema.
+- 🔒 No se puede eliminar una empresa que tenga datos asociados.
+- 🗃️ Un empleado con jornadas o liquidaciones no se borra: se lo da de baja (baja lógica). Deja de aparecer, no puede iniciar sesión y su historial se conserva para que las liquidaciones cerradas sigan cuadrando.
 - ✅ Solo las jornadas aprobadas participan en el cierre mensual.
 - 📅 Una empresa no puede tener más de una liquidación cerrada para el mismo mes y año.
 - 🔁 Para rehacer una liquidación mensual, primero debe anularse la liquidación existente.
@@ -169,6 +182,12 @@ PUT /api/Company/{id}
 
 DELETE /api/Company/{id}
 
+GET /api/Company/mi-empresa (Admin)
+
+PUT /api/Company/mi-empresa (Admin)
+
+PUT /api/Company/valor-hora (Admin)
+
 ### 👥 Usuarios
 
 GET /api/User/Mi Empresa
@@ -180,6 +199,8 @@ GET /api/User/me
 PUT /api/User/me
 
 POST /api/User
+
+PUT /api/User/empleado/{id} (Admin)
 
 DELETE /api/User/{id}
 
@@ -193,7 +214,11 @@ POST /api/Workday/cargar
 
 PUT /api/Workday/aprobar/{id}
 
-PUT /api/Workday/rechazar/{id}
+PUT /api/Workday/{id} (Empleado, jornada pendiente)
+
+PUT /api/Workday/rechazar/{id} (body: { "motivoRechazo": "..." })
+
+GET /api/Workday/Historial (Admin)
 
 ### 💰 Liquidaciones
 

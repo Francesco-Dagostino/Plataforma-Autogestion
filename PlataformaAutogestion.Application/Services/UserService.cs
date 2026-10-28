@@ -23,13 +23,13 @@ namespace PlataformaAutogestion.Application.Services
         public async Task<List<UserDTO>> GetAllAsync()
         {
             var users = await _userRepository.GetAllAsync();
-            return users.Select(UserDTO.FromEntity).ToList();
+            return users.Where(u => u.IsActive).Select(UserDTO.FromEntity).ToList();
         }
 
         public async Task<List<UserDTO>> GetAllByCompanyAsync(int companyId)
         {
             var users = await _userRepository.GetAllByCompanyAsync(companyId);
-            return users.Select(UserDTO.FromEntity).ToList();
+            return users.Where(u => u.IsActive).Select(UserDTO.FromEntity).ToList();
         }
 
         public async Task<UserDTO> GetByIdAsync(int id)
@@ -40,8 +40,19 @@ namespace PlataformaAutogestion.Application.Services
             return UserDTO.FromEntity(user);
         }
 
+        private async Task EnsureUniqueAsync(string userName, string email)
+        {
+            if (await _userRepository.GetByUserNameAsync(userName) != null)
+                throw new OperationNotAllowedException("Ya existe un usuario con ese nombre de usuario.");
+
+            if (await _userRepository.GetByEmailAsync(email) != null)
+                throw new OperationNotAllowedException("Ya existe un usuario con ese correo.");
+        }
+
         public async Task<UserDTO> AddBySuperAdminAsync(UserCreateRequest request)
         {
+            await EnsureUniqueAsync(request.UserName, request.Email);
+
             if (request.Role == Roles.SuperAdmin)
             {
                 if (request.IdCompany != null)
@@ -76,6 +87,8 @@ namespace PlataformaAutogestion.Application.Services
             _ = await _companyRepository.GetByIdAsync(companyId)
                 ?? throw new EntityNotFoundException("Company", companyId);
 
+            await EnsureUniqueAsync(request.UserName, request.Email);
+
             var user = new User
             {
                 Name = request.Name,
@@ -104,10 +117,40 @@ namespace PlataformaAutogestion.Application.Services
             await _userRepository.UpdateAsync(user);
         }
 
+        public async Task UpdateEmployeeAsync(int id, UserUpdateByAdminRequest request, int companyId)
+        {
+            var user = await _userRepository.GetByIdAsync(id)
+                ?? throw new EntityNotFoundException("User", id);
+
+            if (user.IdCompany != companyId || user.role != Roles.Empleado)
+                throw new ForbiddenException();
+
+            var userNameOwner = await _userRepository.GetByUserNameAsync(request.UserName);
+            if (userNameOwner != null && userNameOwner.Id != id)
+                throw new OperationNotAllowedException("Ya existe un usuario con ese nombre de usuario.");
+
+            var emailOwner = await _userRepository.GetByEmailAsync(request.Email);
+            if (emailOwner != null && emailOwner.Id != id)
+                throw new OperationNotAllowedException("Ya existe un usuario con ese correo.");
+
+            user.Name = request.Name;
+            user.Email = request.Email;
+            user.UserName = request.UserName;
+
+            if (!string.IsNullOrWhiteSpace(request.Password))
+                user.Password = PasswordHasher.Hash(request.Password);
+
+            await _userRepository.UpdateAsync(user);
+        }
+
         public async Task UpdateProfileAsync(int id, UserUpdateProfileRequest request)
         {
             var user = await _userRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("User", id);
+
+            var emailOwner = await _userRepository.GetByEmailAsync(request.Email);
+            if (emailOwner != null && emailOwner.Id != id)
+                throw new OperationNotAllowedException("Ya existe un usuario con ese correo.");
 
             user.Name = request.Name;
             user.Email = request.Email;
@@ -118,7 +161,8 @@ namespace PlataformaAutogestion.Application.Services
             await _userRepository.UpdateAsync(user);
         }
 
-        public async Task DeleteAsync(int id, int? companyId = null)
+        // Devuelve true si se dio de baja (baja lógica) y false si se eliminó definitivamente
+        public async Task<bool> DeleteAsync(int id, int? companyId = null)
         {
             var user = await _userRepository.GetByIdAsync(id)
                 ?? throw new EntityNotFoundException("User", id);
@@ -127,7 +171,19 @@ namespace PlataformaAutogestion.Application.Services
             if (companyId.HasValue && user.IdCompany != companyId.Value)
                 throw new OperationNotAllowedException("No puedes eliminar usuarios de otra empresa.");
 
+            if (companyId.HasValue && user.role != Roles.Empleado)
+                throw new ForbiddenException();
+
+            // Con historial no se borra: se da de baja para no romper liquidaciones ya cerradas
+            if (await _userRepository.HasRelatedDataAsync(id))
+            {
+                user.IsActive = false;
+                await _userRepository.UpdateAsync(user);
+                return true;
+            }
+
             await _userRepository.DeleteAsync(user);
+            return false;
         }
     }
 }

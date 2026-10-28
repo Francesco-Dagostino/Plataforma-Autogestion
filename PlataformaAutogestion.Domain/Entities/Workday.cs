@@ -18,6 +18,9 @@ namespace PlataformaAutogestion.Domain.Entities
 
         public DateTime? DateApproval { get; set; }
 
+        [MaxLength(250)]
+        public string? MotivoRechazo { get; set; }
+
         [Required]
         public StatusDay Estado { get; set; }
 

@@ -15,7 +15,8 @@ namespace PlataformaAutogestion.Application.Interfaces
         Task<UserDTO> AddByAdminAsync(UserCreateByAdminRequest request, int companyId);
         Task UpdateRoleAsync(int id, UserUpdateRoleRequest request);
         Task UpdateProfileAsync(int id, UserUpdateProfileRequest request);
-        Task DeleteAsync(int id, int? companyId = null);
+        Task UpdateEmployeeAsync(int id, UserUpdateByAdminRequest request, int companyId);
+        Task<bool> DeleteAsync(int id, int? companyId = null);
     }
 }
 

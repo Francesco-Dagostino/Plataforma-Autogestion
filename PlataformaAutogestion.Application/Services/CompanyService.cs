@@ -26,7 +26,7 @@ namespace PlataformaAutogestion.Application.Services
                 Name = dto.Name,
                 Cuit = dto.Cuit,
                 DateHigh = dto.DateHigh,
-                ParameterSystem = dto.ParameterSystem,
+                ParameterSystem = 0,
             };
 
             await _repository.AddAsync(company);
@@ -55,6 +55,26 @@ namespace PlataformaAutogestion.Application.Services
             company.Name = dto.Name;
             company.Cuit = dto.Cuit;
             company.DateHigh = dto.DateHigh;
+
+            await _repository.UpdateAsync(company);
+        }
+
+        public async Task UpdateProfileAsync(int id, CompanyProfileRequest dto)
+        {
+            var company = await _repository.GetByIdAsync(id)
+                ?? throw new EntityNotFoundException("Company", id);
+
+            company.Name = dto.Name;
+            company.Cuit = dto.Cuit;
+
+            await _repository.UpdateAsync(company);
+        }
+
+        public async Task UpdateHourlyRateAsync(int id, CompanyHourlyRateRequest dto)
+        {
+            var company = await _repository.GetByIdAsync(id)
+                ?? throw new EntityNotFoundException("Company", id);
+
             company.ParameterSystem = dto.ParameterSystem;
 
             await _repository.UpdateAsync(company);
@@ -65,6 +85,9 @@ namespace PlataformaAutogestion.Application.Services
             var company = await _repository.GetByIdAsync(id);
             if (company == null)
                 throw new EntityNotFoundException("Company", id);
+
+            if (await _repository.HasRelatedDataAsync(id))
+                throw new OperationNotAllowedException("No se puede eliminar una empresa que tiene usuarios o datos asociados.");
 
             await _repository.DeleteAsync(company);
         }

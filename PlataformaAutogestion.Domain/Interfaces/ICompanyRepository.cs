@@ -7,6 +7,6 @@ namespace PlataformaAutogestion.Domain.Interfaces
 {
     public interface ICompanyRepository : IBaseRepository<Company>
     {
-        
+        Task<bool> HasRelatedDataAsync(int id);
     }
 }

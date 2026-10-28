@@ -27,6 +27,33 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
 
+        [Authorize(Roles = "Admin")]
+        [HttpGet("mi-empresa")]
+        public async Task<IActionResult> GetMine()
+        {
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+            var company = await _service.GetByIdAsync(companyId);
+            return Ok(company);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("mi-empresa")]
+        public async Task<IActionResult> UpdateMine([FromBody] CompanyProfileRequest dto)
+        {
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+            await _service.UpdateProfileAsync(companyId, dto);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("valor-hora")]
+        public async Task<IActionResult> UpdateHourlyRate([FromBody] CompanyHourlyRateRequest dto)
+        {
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+            await _service.UpdateHourlyRateAsync(companyId, dto);
+            return NoContent();
+        }
+
         [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CompanyCreateRequest dto)

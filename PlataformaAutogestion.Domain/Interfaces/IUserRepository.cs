@@ -11,5 +11,6 @@ namespace PlataformaAutogestion.Domain.Interfaces
         Task<User?> GetByEmailAsync(string email);
         Task<List<User>> GetAllByCompanyAsync(int companyId);
         Task<User?> GetByIdWithDetailsAsync(int id);
+        Task<bool> HasRelatedDataAsync(int id);
     }
 }

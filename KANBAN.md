@@ -149,3 +149,33 @@
   - **Responsable:** Equipo completo
   - **Capa:** QA
   - *Descripción:* Probar contra la URL pública de Azure: login y generación de JWT, Swagger accesible, CRUD de Workday/Liquidation funcionando contra la base real, y que el consumo de la API de feriados (HolidayService) responda correctamente. Confirmar que el HttpClient de HolidayService está registrado vía `AddHttpClient` en `Program.cs` (HttpClientFactory), no instanciado manualmente..
+
+---
+
+## 🛠️ ETAPA 7: Ajustes del TIF
+*Objetivo: Pulir roles, alertas y validaciones antes de la entrega.*
+
+- [x] **Tarjeta 22: Alertas toast unificadas**
+  - **Responsable:** Equipo completo
+  - **Capa:** Frontend
+  - *Descripción:* `ToastProvider` montado en `App.jsx` y reemplazo de los mensajes fijos y del `window.confirm` por toasts y modales. Redirección al login con aviso cuando la sesión vence.
+
+- [x] **Tarjeta 23: Motivo de rechazo e historial de jornadas**
+  - **Responsable:** Equipo completo
+  - **Capa:** Domain / Application / API / Frontend
+  - *Descripción:* `Workday.MotivoRechazo` (migración `AddMotivoRechazoToWorkday`), modal de rechazo con motivo obligatorio, `GET /api/Workday/Historial` para el Admin y visualización del motivo al Empleado.
+
+- [x] **Tarjeta 24: Roles y datos de la empresa**
+  - **Responsable:** Equipo completo
+  - **Capa:** Application / API / Frontend
+  - *Descripción:* El Admin deja de cargar horas propias, edita nombre y CUIT de su empresa y define el valor por hora. El SuperAdmin crea el Admin de cada empresa y ve quién es.
+
+- [x] **Tarjeta 25: Validaciones**
+  - **Responsable:** Equipo completo
+  - **Capa:** Application / Infrastructure
+  - *Descripción:* Usuario y correo únicos, una sola jornada por día, bloqueo de borrado de empresas con datos asociados y baja lógica de empleados con historial.
+
+- [ ] **Tarjeta 26: Dominio y base de datos productiva**
+  - **Responsable:** Equipo completo
+  - **Capa:** DevOps / BD
+  - *Descripción:* Pendiente: dominio público y base productiva.

@@ -15,8 +15,5 @@ namespace PlataformaAutogestion.Application.Models.Requests
         [Required]
         public DateTime DateHigh { get; set; }
 
-        [Required]
-        [Range(1, 999999)]
-        public int ParameterSystem { get; set; }
     }
 }
