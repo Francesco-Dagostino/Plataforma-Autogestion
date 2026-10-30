@@ -210,6 +210,31 @@
   - **Capa:** Domain / Application / Infrastructure / API / Frontend
   - *Descripción:* Entidad `RateHistory` (migración `AddRateHistory`, filtrada por empresa). Cada cambio real del valor hora normal o del valor de feriados se guarda con monto nuevo, monto anterior, fecha y usuario. Siempre se guardan montos: si los feriados se pagan el doble, se registra el importe resultante y también se registra cuando cambia porque subió el valor hora normal. Los cambios que no modifican nada o que fallan la validación no se registran. Las migraciones `AddRateHistory` y `AddHolidayBaselineToRateHistory` dejan como valor inicial el vigente de cada empresa. `GET /api/Company/historial-valores` y tabla en Liquidaciones.
 
+- [x] **Tarjeta 34: Rediseño visual con la identidad "Jornada"**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Frontend (solo estilo)
+  - *Descripción:* Nueva identidad visual sin tocar lógica ni backend. Azul vivo `#2A52F5` como color principal, ámbar `#F2A541` como acento, verde para lo aprobado, fondo con leve tinte frío y tipografía Plus Jakarta Sans. Esquinas redondeadas, tarjetas con elevación suave y menú lateral claro con el ítem activo resaltado. Los tokens están en `src/index.css` (se reasignan los colores de Tailwind que ya usaba la interfaz; el color de marca pasó de `emerald` a `primary`). Logo como componente (`Logo.jsx`, variantes color, negativo y monocromo), favicon con el ícono de la app y pantallas de acceso con panel de marca (`AuthLayout.jsx`). Se verificó el contraste de texto (WCAG AA) en todas las pantallas, en claro y en oscuro.
+
+- [x] **Tarjeta 35: Tema claro y oscuro**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Frontend
+  - *Descripción:* Botón "Modo oscuro" en el menú lateral y en las pantallas de acceso (`ThemeToggle.jsx`). Arranca con la preferencia del sistema, recuerda la elección en el navegador (`localStorage`, clave `jornada-theme`), la mantiene al cerrar sesión y se aplica antes de dibujar la página para que no parpadee (`features/theme/theme.js` y un script en `index.html`). La paleta oscura está en `src/index.css`.
+
+- [x] **Tarjeta 36: Paginación del historial de jornadas**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Frontend
+  - *Descripción:* El historial de jornadas del Empleado y el del Admin (aprobadas y rechazadas) muestran 10 filas por página, con "Mostrando 1–10 de N", botones Anterior / Siguiente y números de página (`Pagination.jsx`, `features/pagination/paginate.js`). Los controles no aparecen si hay 10 o menos. El historial del Empleado se ordena de la jornada más nueva a la más vieja, y al registrar una jornada nueva vuelve a la primera página. La paginación es del lado del navegador: no cambia el backend.
+
+- [x] **Tarjeta 37: Ordenar el historial de jornadas por estado**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Frontend
+  - *Descripción:* Selector "Ordenar" en el historial de jornadas (`StatusSortSelect.jsx`, `features/pagination/sortByStatus.js`). El Empleado puede poner primero las pendientes, las aprobadas o las rechazadas; el Admin, las aprobadas o las rechazadas (las pendientes están en el monitor). Dentro de cada grupo se conserva el orden por fecha, el total no cambia y al ordenar se vuelve a la primera página.
+
+- [x] **Tarjeta 38: Modo oscuro neutro**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Frontend (solo estilo)
+  - *Descripción:* El tema oscuro dejó el azul marino por un fondo casi negro neutro (un solo fondo para menú, barra superior y página), tarjetas un escalón más claras con línea fina y sin sombra, botón principal invertido (claro con texto oscuro), ítem activo del menú en gris neutro y el color de marca solo en enlaces, foco y datos. Estados en tonos apagados. Criterios tomados del estilo "true-black-flat" de la guía de diseño de apps. El modo claro no cambió. Contraste de texto verificado en ambos temas.
+
 - [ ] **Tarjeta 26: Dominio y base de datos productiva**
   - **Responsable:** Equipo completo
   - **Capa:** DevOps / BD

@@ -67,6 +67,9 @@ El proyecto está organizado bajo el patrón Clean Architecture, separando respo
 - 🕘 Historial de jornadas aprobadas y rechazadas para el Admin.
 - 🏭 Edición de los datos de la empresa, del valor por hora y del tope de horas diarias por parte de su Admin.
 - 💵 Las horas trabajadas en fin de semana o feriado se pagan con el valor hora de feriado que define cada empresa (por defecto, el doble del valor hora normal). Lo usan la liquidación, la estimación del empleado y las estadísticas.
+- 🔀 El historial de jornadas se puede ordenar por estado (pendientes, aprobadas o rechazadas primero).
+- 📑 Historial de jornadas paginado (10 por página) para el Empleado y para el Admin.
+- 🌗 Tema claro y oscuro, a elección de cada persona (por defecto sigue al sistema).
 - 🧾 Historial de valores hora: cada cambio del valor normal o del valor de feriados queda registrado con fecha, valor anterior y usuario.
 - ⛔ Tope de horas diarias por empresa: una jornada que lo supera se rechaza al cargarla o editarla.
 - 🔔 Avisos internos para el Admin cuando un empleado carga o modifica una jornada (dentro del sistema, sin correo).
