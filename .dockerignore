@@ -1,0 +1,16 @@
+.git
+.github
+.vs
+.idea
+.vscode
+**/bin
+**/obj
+**/node_modules
+**/appsettings*.json
+**/.env*
+**/*.pfx
+**/*.key
+deploy
+Dockerfile
+README.md
+KANBAN.md

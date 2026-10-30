@@ -143,11 +143,16 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FrontendLocal", policy =>
+    options.AddPolicy("Frontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? (builder.Environment.IsDevelopment() ? new[] { "http://localhost:5173" } : Array.Empty<string>());
+        var frontendUrl = builder.Configuration["FrontendUrl"];
+        if (!string.IsNullOrWhiteSpace(frontendUrl))
+            origins = origins.Append(frontendUrl.TrimEnd('/')).ToArray();
+
+        if (origins.Length > 0)
+            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
     });
 });
 
@@ -180,12 +185,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseHttpsRedirection();
+// Render termina TLS y redirige HTTP a HTTPS antes de enviar la peticion al contenedor.
+if (!string.Equals(builder.Configuration["RENDER"], "true", StringComparison.OrdinalIgnoreCase))
+    app.UseHttpsRedirection();
 
-app.UseCors("FrontendLocal");
+app.UseCors("Frontend");
 
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 app.MapControllers();
 app.Run();
