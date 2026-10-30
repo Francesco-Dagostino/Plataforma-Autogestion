@@ -72,6 +72,21 @@ builder.Services.AddAuthentication("Bearer")
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.ASCII.GetBytes(builder.Configuration["AutenticacionService:SecretForKey"]!))
         };
+    })
+    // Esquema aparte para los tokens temporales de MFA: otra audiencia, así el esquema
+    // "Bearer" de la API de negocio los rechaza y estos solo sirven en /api/auth/mfa/*.
+    .AddJwtBearer("MfaBearer", options =>
+    {
+        options.TokenValidationParameters = new()
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["AutenticacionService:Issuer"],
+            ValidAudience = builder.Configuration["AutenticacionService:Audience"] + AuthService.MfaAudienceSuffix,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.ASCII.GetBytes(builder.Configuration["AutenticacionService:SecretForKey"]!))
+        };
     });
 
 #region Repositories
@@ -81,6 +96,8 @@ builder.Services.AddScoped<IWorkdayRepository, WorkdayRepository>();
 builder.Services.AddScoped<ILiquidationRepository, LiquidationRepository>();
 builder.Services.AddScoped<IDetailLiquidationRepositoy, DetailLiquidationRepository>();
 builder.Services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IRateHistoryRepository, RateHistoryRepository>();
 #endregion
 
 #region Services
@@ -107,6 +124,7 @@ builder.Services.AddHttpClient<IHolidayService, HolidayService>(client =>
         "application/json");
 });
 
+builder.Services.AddSingleton<MfaSecretProtector>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -114,6 +132,8 @@ builder.Services.AddScoped<IWorkdayService, WorkdayService>();
 builder.Services.AddScoped<ILiquidationService, LiquidationService>();
 builder.Services.AddScoped<IDetailLiquidationService, DetailLiquidationService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 builder.Services.Configure<EmailServiceOptions>(
     builder.Configuration.GetSection(EmailServiceOptions.EmailService));

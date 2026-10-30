@@ -48,6 +48,14 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 .ToListAsync();
         }
 
+        public async Task<List<Workday>> GetByCompanyAndPeriodAsync(int companyId, DateTime fromInclusive, DateTime toExclusive)
+        {
+            return await _context.Workdays
+                .Include(w => w.Usuario)
+                .Where(w => w.IdCompany == companyId && w.DateEntry >= fromInclusive && w.DateEntry < toExclusive)
+                .ToListAsync();
+        }
+
         public async Task<Workday?> GetByDateAndUserAsync(DateTime date, int userId)
         {
             return await _context.Workdays

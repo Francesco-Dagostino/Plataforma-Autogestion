@@ -33,6 +33,12 @@ public class User
     // Baja lógica: conserva el historial de jornadas y liquidaciones del empleado.
     public bool IsActive { get; set; } = true;
 
+    // MFA (TOTP): obligatorio para el SuperAdmin. El secreto se guarda en Base32.
+    [MaxLength(255)]
+    public string? MfaSecret { get; set; }
+
+    public bool MfaEnabled { get; set; } = false;
+
     public int? IdCompany { get; set; }
 
     public Company? Company { get; set; }

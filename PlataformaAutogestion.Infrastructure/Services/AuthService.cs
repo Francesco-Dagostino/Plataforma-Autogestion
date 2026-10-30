@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using OtpNet;
+using System.Collections.Concurrent;
+using static PlataformaAutogestion.Domain.Enums.QuestionState;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -21,6 +24,7 @@ namespace PlataformaAutogestion.Infrastructure.Services
         private readonly IUserRepository _userRepository;
         private readonly IPasswordResetRepository _resetRepository;
         private readonly IConfiguration _configuration;
+        private readonly MfaSecretProtector _mfaProtector;
 
         public AuthService(
             ApplicationDbContext context,
@@ -28,8 +32,10 @@ namespace PlataformaAutogestion.Infrastructure.Services
             IEmailService emailService,
             IUserRepository userRepository,
             IPasswordResetRepository resetRepository,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            MfaSecretProtector mfaProtector)
         {
+            _mfaProtector = mfaProtector;
             _context = context;
             _options = options.Value;
             _emailService = emailService;
@@ -38,7 +44,18 @@ namespace PlataformaAutogestion.Infrastructure.Services
             _configuration = configuration;
         }
 
-        public async Task<string> LoginAsync(string userName, string password)
+        // Claim y audiencia de los tokens temporales de MFA.
+        public const string MfaPurposeClaim = "purpose";
+        public const string MfaPurposeVerify = "mfa";
+        public const string MfaPurposeSetup = "mfa-setup";
+        public const string MfaAudienceSuffix = "-mfa";
+
+        private const int MfaMaxAttempts = 5;
+        private static readonly TimeSpan MfaLockout = TimeSpan.FromMinutes(5);
+        private static readonly ConcurrentDictionary<int, (int Attempts, DateTime LockedUntil)> _mfaAttempts = new();
+        private static readonly Dictionary<int, long> _mfaLastStep = new();
+
+        public async Task<LoginResult> LoginAsync(string userName, string password)
         {
             var user = await _context.Users
                 .IgnoreQueryFilters()
@@ -53,7 +70,108 @@ namespace PlataformaAutogestion.Infrastructure.Services
                 await _context.SaveChangesAsync();
             }
 
+            // El SuperAdmin nunca recibe el JWT real sin pasar por el segundo factor.
+            if (user.role == Roles.SuperAdmin)
+            {
+                var needsSetup = !user.MfaEnabled || string.IsNullOrEmpty(user.MfaSecret);
+                return new LoginResult
+                {
+                    Token = GenerateMfaToken(user, needsSetup ? MfaPurposeSetup : MfaPurposeVerify),
+                    MfaRequired = !needsSetup,
+                    MfaSetupRequired = needsSetup
+                };
+            }
+
+            return new LoginResult { Token = GenerateToken(user) };
+        }
+
+        public async Task<MfaSetupResult> MfaSetupAsync(int userId)
+        {
+            var user = await GetSuperAdminAsync(userId);
+
+            if (user.MfaEnabled)
+                throw new InvalidOperationException("El MFA ya está configurado para este usuario.");
+
+            var secretBytes = KeyGeneration.GenerateRandomKey(20);
+            var secret = Base32Encoding.ToString(secretBytes);
+
+            user.MfaSecret = _mfaProtector.Protect(secret);
+            await _context.SaveChangesAsync();
+
+            var issuer = Uri.EscapeDataString("PlataformaAutogestion");
+            var label = Uri.EscapeDataString(user.UserName);
+
+            return new MfaSetupResult
+            {
+                Secret = secret,
+                OtpAuthUri = $"otpauth://totp/{issuer}:{label}?secret={secret}&issuer={issuer}&digits=6&period=30"
+            };
+        }
+
+        public async Task<string> MfaVerifyAsync(int userId, string code, bool isSetup)
+        {
+            var user = await GetSuperAdminAsync(userId);
+
+            if (string.IsNullOrEmpty(user.MfaSecret))
+                throw new InvalidOperationException("Primero hay que generar el código QR de configuración.");
+
+            if (isSetup == user.MfaEnabled)
+                throw new UnauthorizedAccessException("Operación de MFA inválida.");
+
+            if (_mfaAttempts.TryGetValue(userId, out var state) && state.LockedUntil > DateTime.UtcNow)
+                throw new UnauthorizedAccessException("Demasiados intentos. Probá de nuevo en unos minutos.");
+
+            var plainSecret = _mfaProtector.Unprotect(user.MfaSecret);
+            var totp = new Totp(Base32Encoding.ToBytes(plainSecret));
+            var valid = totp.VerifyTotp(code, out var timeStepMatched, VerificationWindow.RfcSpecifiedNetworkDelay);
+
+            // Anti-replay: un código ya usado (o más viejo que el último usado) no vale de nuevo.
+            if (valid)
+            {
+                lock (_mfaLastStep)
+                {
+                    if (_mfaLastStep.TryGetValue(userId, out var lastStep) && timeStepMatched <= lastStep)
+                        throw new UnauthorizedAccessException("Ese código ya fue utilizado. Esperá el siguiente.");
+
+                    _mfaLastStep[userId] = timeStepMatched;
+                }
+            }
+
+            if (!valid)
+            {
+                var attempts = (_mfaAttempts.TryGetValue(userId, out var prev) ? prev.Attempts : 0) + 1;
+                _mfaAttempts[userId] = attempts >= MfaMaxAttempts
+                    ? (0, DateTime.UtcNow.Add(MfaLockout))
+                    : (attempts, DateTime.MinValue);
+                throw new UnauthorizedAccessException("Código incorrecto.");
+            }
+
+            _mfaAttempts.TryRemove(userId, out _);
+
+            // Un secreto guardado antes del cifrado queda cifrado en el primer código válido.
+            var upgradeSecret = !user.MfaSecret.StartsWith("v1:");
+            if (upgradeSecret)
+                user.MfaSecret = _mfaProtector.Protect(plainSecret);
+
+            if (isSetup)
+                user.MfaEnabled = true;
+
+            if (isSetup || upgradeSecret)
+                await _context.SaveChangesAsync();
+
             return GenerateToken(user);
+        }
+
+        private async Task<User> GetSuperAdminAsync(int userId)
+        {
+            var user = await _context.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.Id == userId);
+
+            if (user == null || !user.IsActive || user.role != Roles.SuperAdmin)
+                throw new UnauthorizedAccessException("Usuario inválido para MFA.");
+
+            return user;
         }
 
         public async Task ForgotPasswordAsync(string email)
@@ -140,6 +258,28 @@ namespace PlataformaAutogestion.Infrastructure.Services
         {
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
             return Convert.ToBase64String(bytes);
+        }
+
+        // Token temporal (5 min), sin rol y con otra audiencia: la API de negocio lo rechaza.
+        private string GenerateMfaToken(User user, string purpose)
+        {
+            var key = new SymmetricSecurityKey(
+                Encoding.ASCII.GetBytes(_options.SecretForKey));
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(MfaPurposeClaim, purpose),
+            };
+
+            var token = new JwtSecurityToken(
+                _options.Issuer,
+                _options.Audience + MfaAudienceSuffix,
+                claims,
+                expires: DateTime.UtcNow.AddMinutes(5),
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         private string GenerateToken(User user)

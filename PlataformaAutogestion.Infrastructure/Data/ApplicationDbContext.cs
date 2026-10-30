@@ -34,6 +34,8 @@ namespace PlataformaAutogestion.Infrastructure.Data
         public DbSet<Liquidation> Liquidations { get; set; }
         public DbSet<DetailLiquidation> Details { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<RateHistory> RateHistories { get; set; }
 
         // Método para extraer el IdCompany del token JWT.
         private int? GetCurrentCompanyId()
@@ -62,6 +64,10 @@ namespace PlataformaAutogestion.Infrastructure.Data
             modelBuilder.Entity<Liquidation>().HasQueryFilter(l => l.IdCompany == GetCurrentCompanyId());
             // Filtra detalles de liquidación por la empresa del usuario logueado.
             modelBuilder.Entity<DetailLiquidation>().HasQueryFilter(dl => dl.IdCompany == GetCurrentCompanyId());
+            // Filtra los avisos por la empresa del usuario logueado.
+            modelBuilder.Entity<Notification>().HasQueryFilter(n => n.IdCompany == GetCurrentCompanyId());
+            // Filtra el historial de valores hora por la empresa del usuario logueado.
+            modelBuilder.Entity<RateHistory>().HasQueryFilter(r => r.IdCompany == GetCurrentCompanyId());
 
             //// Configuración de las entidades.
             modelBuilder.Entity<Company>(entity =>
@@ -72,6 +78,38 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(c => c.Cuit).IsRequired();
                 entity.Property(c => c.DateHigh).IsRequired();
                 entity.Property(c => c.ParameterSystem).IsRequired();
+                entity.Property(c => c.DailyHoursLimit).IsRequired().HasDefaultValue(12m);
+            });
+
+            modelBuilder.Entity<RateHistory>(entity =>
+            {
+                entity.ToTable("RateHistories");
+                entity.HasKey(r => r.Id);
+                entity.Property(r => r.RateType).IsRequired().HasMaxLength(20);
+                entity.Property(r => r.ChangedAt).IsRequired();
+                entity.Property(r => r.UserName).HasMaxLength(100);
+
+                entity.HasIndex(r => new { r.IdCompany, r.ChangedAt });
+
+                entity.HasOne(r => r.Company)
+                    .WithMany()
+                    .HasForeignKey(r => r.IdCompany);
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.ToTable("Notifications");
+                entity.HasKey(n => n.Id);
+                entity.Property(n => n.Type).IsRequired().HasMaxLength(30);
+                entity.Property(n => n.Message).IsRequired().HasMaxLength(250);
+                entity.Property(n => n.IdWorkday).HasMaxLength(50);
+                entity.Property(n => n.CreatedAt).IsRequired();
+
+                entity.HasIndex(n => new { n.IdCompany, n.IsRead, n.CreatedAt });
+
+                entity.HasOne(n => n.Company)
+                    .WithMany()
+                    .HasForeignKey(n => n.IdCompany);
             });
 
             

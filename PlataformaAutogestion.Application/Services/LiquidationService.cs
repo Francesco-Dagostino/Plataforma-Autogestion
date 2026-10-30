@@ -64,17 +64,13 @@ namespace PlataformaAutogestion.Application.Services
             decimal totalHoras = 0;
             decimal montoAcumulado = 0;
 
+            var feriados = await HolidayPayRule.LoadHolidaysAsync(_holidayService, jornadasDelMes.Select(w => w.DateEntry));
+
             foreach (var jornada in jornadasDelMes)
             {
                 totalHoras += jornada.HoursWorked;
-                decimal valorHoraAplicado = valorHoraEmpresa;
-
-                if (await _holidayService.IsHolidayAsync(jornada.DateEntry))
-                {
-                    valorHoraAplicado *= 2;
-                }
-
-                montoAcumulado += jornada.HoursWorked * valorHoraAplicado;
+                // Fin de semana o feriado: se usa el valor hora de feriado de la empresa.
+                montoAcumulado += jornada.HoursWorked * HolidayPayRule.HourlyRateFor(jornada.DateEntry, company, feriados);
             }
 
             return new SimulacionEmpleadoResponse
@@ -136,6 +132,7 @@ namespace PlataformaAutogestion.Application.Services
             };
 
             decimal totalLiquidacionEmpresa = 0;
+            var feriados = await HolidayPayRule.LoadHolidaysAsync(_holidayService, jornadasDelMes.Select(w => w.DateEntry));
             var jornadasPorUsuario = jornadasDelMes.GroupBy(w => w.IdUser);
 
             foreach (var group in jornadasPorUsuario)
@@ -146,12 +143,8 @@ namespace PlataformaAutogestion.Application.Services
                 foreach (var jornada in group)
                 {
                     totalHorasUsuario += jornada.HoursWorked;
-                    decimal valorHoraAplicado = valorHoraEmpresa;
-
-                    if (await _holidayService.IsHolidayAsync(jornada.DateEntry))
-                        valorHoraAplicado *= 2;
-
-                    montoTotalUsuario += jornada.HoursWorked * valorHoraAplicado;
+                    // Fin de semana o feriado: se usa el valor hora de feriado de la empresa.
+                    montoTotalUsuario += jornada.HoursWorked * HolidayPayRule.HourlyRateFor(jornada.DateEntry, company, feriados);
                 }
 
                 liquidation.detailLiquidations.Add(new DetailLiquidation

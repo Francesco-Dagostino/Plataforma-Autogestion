@@ -33,8 +33,16 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
                     b.Property<long>("Cuit")
                         .HasColumnType("bigint");
 
+                    b.Property<decimal>("DailyHoursLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric")
+                        .HasDefaultValue(12m);
+
                     b.Property<DateTime>("DateHigh")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("HolidayHourlyRate")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -113,6 +121,47 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
                     b.ToTable("Liquidations", (string)null);
                 });
 
+            modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IdCompany")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("IdUser")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("IdWorkday")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdCompany", "IsRead", "CreatedAt");
+
+                    b.ToTable("Notifications", (string)null);
+                });
+
             modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.PasswordResetToken", b =>
                 {
                     b.Property<int>("Id")
@@ -147,6 +196,45 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
                     b.ToTable("PasswordResetTokens", (string)null);
                 });
 
+            modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.RateHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IdCompany")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("IdUser")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("PreviousValue")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("RateType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal?>("Value")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdCompany", "ChangedAt");
+
+                    b.ToTable("RateHistories", (string)null);
+                });
+
             modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -168,6 +256,13 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
+
+                    b.Property<bool>("MfaEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MfaSecret")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -269,6 +364,17 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("PlataformaAutogestion.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("IdCompany")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.PasswordResetToken", b =>
                 {
                     b.HasOne("PlataformaAutogestion.Domain.Entities.User", "User")
@@ -278,6 +384,17 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.RateHistory", b =>
+                {
+                    b.HasOne("PlataformaAutogestion.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("IdCompany")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("PlataformaAutogestion.Domain.Entities.User", b =>

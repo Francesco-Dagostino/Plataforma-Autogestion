@@ -1,4 +1,5 @@
-﻿using PlataformaAutogestion.Domain.Entities;
+﻿using PlataformaAutogestion.Application.Services;
+using PlataformaAutogestion.Domain.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace PlataformaAutogestion.Application.Models
@@ -22,6 +23,13 @@ namespace PlataformaAutogestion.Application.Models
         [Range(typeof(decimal), "0.01", "999999999")]
         public decimal ParameterSystem { get; set; }
 
+        public decimal DailyHoursLimit { get; set; }
+
+        // Valor guardado (null si la empresa usa el doble) y valor que realmente se paga en feriados.
+        public decimal? HolidayHourlyRate { get; set; }
+
+        public decimal EffectiveHolidayRate { get; set; }
+
         public static CompanyDTO FromEntity(Company company)
         {
             return new CompanyDTO
@@ -30,7 +38,10 @@ namespace PlataformaAutogestion.Application.Models
                 Name = company.Name,
                 Cuit = company.Cuit,
                 DateHigh = company.DateHigh,
-                ParameterSystem = company.ParameterSystem
+                ParameterSystem = company.ParameterSystem,
+                DailyHoursLimit = company.DailyHoursLimit,
+                HolidayHourlyRate = company.HolidayHourlyRate,
+                EffectiveHolidayRate = HolidayPayRule.HolidayRate(company)
             };
         }
     }

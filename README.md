@@ -55,6 +55,7 @@ El proyecto está organizado bajo el patrón Clean Architecture, separando respo
 - 🏢 Gestión de empresas por usuario SuperAdmin.
 - 👥 Gestión de usuarios por empresa.
 - 🔐 Autenticación mediante JWT.
+- 📲 Verificación en dos pasos (MFA con TOTP) obligatoria para el SuperAdmin.
 - 🛡️ Autorización por roles:
   - SuperAdmin
   - Admin
@@ -64,7 +65,12 @@ El proyecto está organizado bajo el patrón Clean Architecture, separando respo
 - 👥 Alta, edición y baja de empleados por parte del Admin.
 - ✅ Aprobación y rechazo de jornadas, con motivo de rechazo obligatorio.
 - 🕘 Historial de jornadas aprobadas y rechazadas para el Admin.
-- 🏭 Edición de los datos de la empresa y del valor por hora por parte de su Admin.
+- 🏭 Edición de los datos de la empresa, del valor por hora y del tope de horas diarias por parte de su Admin.
+- 💵 Las horas trabajadas en fin de semana o feriado se pagan con el valor hora de feriado que define cada empresa (por defecto, el doble del valor hora normal). Lo usan la liquidación, la estimación del empleado y las estadísticas.
+- 🧾 Historial de valores hora: cada cambio del valor normal o del valor de feriados queda registrado con fecha, valor anterior y usuario.
+- ⛔ Tope de horas diarias por empresa: una jornada que lo supera se rechaza al cargarla o editarla.
+- 🔔 Avisos internos para el Admin cuando un empleado carga o modifica una jornada (dentro del sistema, sin correo).
+- 📊 Estadísticas mensuales para el Admin: horas aprobadas, pendientes y rechazadas, costo estimado y rendimiento por empleado.
 - 🧑‍💼 Alta del Admin de cada empresa por parte del SuperAdmin.
 - 🧮 Simulación de liquidaciones.
 - 💰 Cierre mensual de liquidaciones.
@@ -103,11 +109,21 @@ La API utiliza autenticación JWT Bearer. El token incluye claims de identificac
 
 El secret utilizado para firmar los tokens JWT se configura mediante variables de entorno en Azure App Service.
 
+### 📲 MFA del SuperAdmin (TOTP)
+
+El SuperAdmin no recibe el JWT definitivo solo con usuario y contraseña. El login responde con un token temporal (5 minutos, sin rol y con otra audiencia, por lo que la API de negocio lo rechaza) que solo sirve en los endpoints `/api/Auth/mfa/*`:
+
+1. Primer ingreso: `POST /api/Auth/mfa/setup` devuelve la URI `otpauth://` para el QR (Google Authenticator, Microsoft Authenticator, etc.). El MFA queda activo al confirmar el primer código en `mfa/verify`.
+2. Ingresos siguientes: `POST /api/Auth/mfa/verify` con el código de 6 dígitos entrega el JWT real.
+
+Medidas adicionales: 5 códigos incorrectos bloquean los intentos del usuario por 5 minutos, y el secreto TOTP se guarda cifrado en la base (AES-256-GCM) con la clave `Mfa__EncryptionKey`. Admin y Empleado no usan MFA.
+
 ### 🔑 Variables principales
 
 - AutenticacionService__SecretForKey
 - AutenticacionService__Issuer
 - AutenticacionService__Audience
+- Mfa__EncryptionKey (32 bytes en Base64, por ejemplo `openssl rand -base64 32`)
 
 ### 🌎 Configuración de API externa de feriados
 
@@ -170,6 +186,26 @@ Incluye:
 
 POST /api/Auth/login
 
+POST /api/Auth/mfa/setup (token temporal de configuración, SuperAdmin)
+
+POST /api/Auth/mfa/verify (token temporal, SuperAdmin)
+
+### 🔔 Avisos del Admin
+
+GET /api/Notification (últimos avisos y cantidad sin leer)
+
+PUT /api/Notification/{id}/leer
+
+PUT /api/Notification/leer-todas
+
+Los avisos se generan al cargar o modificar una jornada y se marcan como leídos solos cuando el Admin la aprueba o rechaza. Se muestran en la campana del panel, que consulta cada 30 segundos.
+
+### 📊 Estadísticas
+
+GET /api/estadisticas?month=10&year=2026 (Admin; sin parámetros usa el mes actual)
+
+Devuelve totales del mes, costo estimado (horas aprobadas por el valor hora actual), tasa de aprobación, el detalle por empleado y la serie diaria de horas.
+
 ### 🏢 Empresas
 
 GET /api/Company
@@ -183,6 +219,14 @@ PUT /api/Company/{id}
 DELETE /api/Company/{id}
 
 GET /api/Company/mi-empresa (Admin)
+
+PUT /api/Company/valor-hora-feriado (Admin; sin valor vuelve al doble del valor hora)
+
+GET /api/Company/historial-valores (Admin; cambios de valor hora, del más nuevo al más viejo)
+
+GET /api/Company/tope-horas (Admin, Empleado)
+
+PUT /api/Company/tope-horas (Admin)
 
 PUT /api/Company/mi-empresa (Admin)
 

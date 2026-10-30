@@ -16,14 +16,31 @@ namespace PlataformaAutogestion.Application.Services
         private readonly IWorkdayRepository _workdayRepository;
         private readonly ICompanyRepository _companyRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IHolidayService _holidayService;
+        private readonly INotificationService _notificationService;
 
-        public WorkdayService(IWorkdayRepository workdayRepository, ICompanyRepository companyRepository, IUserRepository userRepository, IHolidayService holidayService)
+        public WorkdayService(IWorkdayRepository workdayRepository, ICompanyRepository companyRepository, IUserRepository userRepository, INotificationService notificationService)
         {
             _workdayRepository = workdayRepository;
             _companyRepository = companyRepository;
             _userRepository = userRepository;
-            _holidayService = holidayService;
+            _notificationService = notificationService;
+        }
+
+        // Rechaza cargas que superan el tope diario configurado por la empresa.
+        private static void EnsureWithinDailyLimit(decimal hours, Company company)
+        {
+            if (hours > company.DailyHoursLimit)
+            {
+                var limit = company.DailyHoursLimit.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
+                throw new OperationNotAllowedException($"Superás el tope de {limit} horas diarias que definió tu empresa.");
+            }
+        }
+
+        // El aviso al Admin es secundario: si falla no debe invalidar una jornada ya guardada.
+        private async Task TryNotifyAsync(Workday workday, string userName, bool edited)
+        {
+            try { await _notificationService.NotifyWorkdayLoadedAsync(workday, userName, edited); }
+            catch { /* la jornada ya quedó registrada */ }
         }
 
         public async Task<List<WorkdayDTO>> GetByUserAsync(int userId)
@@ -55,8 +72,7 @@ namespace PlataformaAutogestion.Application.Services
             var company = await _companyRepository.GetByIdAsync(idCompany)
                 ?? throw new EntityNotFoundException("Company", idCompany);
 
-            if (await _holidayService.IsHolidayAsync(request.DateEntry))
-                throw new OperationNotAllowedException("Ese día es o fue feriado no laboral.");
+            EnsureWithinDailyLimit(request.HoursWorked, company);
 
             await EnsureNoDuplicateDayAsync(userId, request.DateEntry);
 
@@ -72,6 +88,7 @@ namespace PlataformaAutogestion.Application.Services
             };
 
             await _workdayRepository.AddAsync(workday);
+            await TryNotifyAsync(workday, user.Name, edited: false);
             return WorkdayDTO.FromEntity(workday);
         }
 
@@ -93,8 +110,10 @@ namespace PlataformaAutogestion.Application.Services
             if (workday.Estado != StatusDay.Pendiente)
                 throw new InvalidOperationException("Solo se pueden editar jornadas en estado Pendiente.");
 
-            if (await _holidayService.IsHolidayAsync(request.DateEntry))
-                throw new OperationNotAllowedException("Ese día es o fue feriado no laboral.");
+            var company = await _companyRepository.GetByIdAsync(workday.IdCompany)
+                ?? throw new EntityNotFoundException("Company", workday.IdCompany);
+
+            EnsureWithinDailyLimit(request.HoursWorked, company);
 
             await EnsureNoDuplicateDayAsync(userId, request.DateEntry, id);
 
@@ -102,6 +121,9 @@ namespace PlataformaAutogestion.Application.Services
             workday.DateEntry = request.DateEntry;
 
             await _workdayRepository.UpdateAsync(workday);
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            await TryNotifyAsync(workday, user?.Name ?? "Un empleado", edited: true);
             return WorkdayDTO.FromEntity(workday);
         }
 
@@ -121,6 +143,7 @@ namespace PlataformaAutogestion.Application.Services
             workday.DateApproval = DateTime.UtcNow;
 
             await _workdayRepository.UpdateAsync(workday);
+            await _notificationService.MarkWorkdayHandledAsync(companyId, id);
         }
 
         public async Task RejectAsync(string id, int companyId, string motivoRechazo)
@@ -140,6 +163,7 @@ namespace PlataformaAutogestion.Application.Services
             workday.DateApproval = DateTime.UtcNow;
 
             await _workdayRepository.UpdateAsync(workday);
+            await _notificationService.MarkWorkdayHandledAsync(companyId, id);
         }
     }
 }

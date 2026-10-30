@@ -175,6 +175,41 @@
   - **Capa:** Application / Infrastructure
   - *Descripción:* Usuario y correo únicos, una sola jornada por día, bloqueo de borrado de empresas con datos asociados y baja lógica de empleados con historial.
 
+- [x] **Tarjeta 27: MFA (TOTP) para el SuperAdmin**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Domain / Application / Infrastructure / API / Frontend
+  - *Descripción:* Campos `MfaSecret` y `MfaEnabled` en `User` (migración `AddMfaDailyLimitAndNotifications`). El login del SuperAdmin entrega un token temporal que solo sirve en `POST /api/auth/mfa/setup` y `POST /api/auth/mfa/verify`; el JWT real se emite recién con el código de 6 dígitos. Secreto cifrado con AES-256-GCM (`Mfa:EncryptionKey`), bloqueo de 5 minutos tras 5 intentos fallidos y pantalla de QR/código en el login.
+
+- [x] **Tarjeta 28: Tope de horas diarias por empresa**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Domain / Application / API / Frontend
+  - *Descripción:* `Company.DailyHoursLimit` (12 h por defecto). `WorkdayService` rechaza cargas y ediciones que lo superan. El Admin lo edita en Mi empresa (`PUT /api/Company/tope-horas`) y el Empleado lo ve en el formulario de horas.
+
+- [x] **Tarjeta 29: Estadísticas de horas y costos para el Admin**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Application / API / Frontend
+  - *Descripción:* `GET /api/estadisticas` (mes y año) con horas aprobadas, pendientes y rechazadas, costo estimado, tasa de aprobación y detalle por empleado. Pantalla Estadísticas en el panel del Admin con indicadores, gráfico por día y tabla.
+
+- [x] **Tarjeta 30: Avisos internos para el Admin**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Domain / Application / Infrastructure / API / Frontend
+  - *Descripción:* Entidad `Notification` filtrada por empresa. Se crea un aviso cuando un empleado carga o modifica una jornada y se marca leído al aprobarla o rechazarla. Campana con contador y etiqueta de avisos nuevos en el panel del Admin. No se envían correos.
+
+- [x] **Tarjeta 31: Pago doble en fines de semana y feriados**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Application
+  - *Descripción:* `HolidayPayRule` centraliza la regla: sábados, domingos y feriados de la API (excepto los "puente" no laborables) se pagan con un valor hora distinto. La usan la liquidación, la estimación del empleado y el costo de las estadísticas. Cargar horas en un feriado deja de rechazarse.
+
+- [x] **Tarjeta 32: Valor hora de feriado configurable por empresa**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Domain / Application / API / Frontend
+  - *Descripción:* `Company.HolidayHourlyRate` (nullable, migración `AddHolidayHourlyRateToCompany`). Si es null se paga el doble del valor hora, como hasta ahora. El Admin lo define en Liquidaciones (`PUT /api/Company/valor-hora-feriado`) y puede volver al doble con "Usar el doble".
+
+- [x] **Tarjeta 33: Historial de valores hora**
+  - **Responsable:** Danilo Mercado
+  - **Capa:** Domain / Application / Infrastructure / API / Frontend
+  - *Descripción:* Entidad `RateHistory` (migración `AddRateHistory`, filtrada por empresa). Cada cambio real del valor hora normal o del valor de feriados se guarda con monto nuevo, monto anterior, fecha y usuario. Siempre se guardan montos: si los feriados se pagan el doble, se registra el importe resultante y también se registra cuando cambia porque subió el valor hora normal. Los cambios que no modifican nada o que fallan la validación no se registran. Las migraciones `AddRateHistory` y `AddHolidayBaselineToRateHistory` dejan como valor inicial el vigente de cada empresa. `GET /api/Company/historial-valores` y tabla en Liquidaciones.
+
 - [ ] **Tarjeta 26: Dominio y base de datos productiva**
   - **Responsable:** Equipo completo
   - **Capa:** DevOps / BD
