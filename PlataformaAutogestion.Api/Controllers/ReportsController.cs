@@ -29,14 +29,6 @@ namespace PlataformaAutogestion.Api.Controllers
             );
         }
 
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpGet("superadmin/{companyId:int}/recibos/{id:int}")]
-        public async Task<IActionResult> GenerarRecibosSuperAdmin(int companyId, int id)
-        {
-            var pdf = await _reporteService.GenerarPdfRecibosEmpresaAsync(id, companyId);
-            return File(pdf, "application/pdf", $"recibos_empresa_{companyId}_{id}.pdf");
-        }
-
         [Authorize(Roles = "Empleado")]
         [HttpGet("mi-recibo/{detailId:int}")]
         public async Task<IActionResult> GenerarMiRecibo(int detailId)
@@ -60,12 +52,5 @@ namespace PlataformaAutogestion.Api.Controllers
             );
         }
 
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpGet("superadmin/{companyId:int}/banco/{id:int}")]
-        public async Task<IActionResult> GenerarLoteBancoSuperAdmin(int companyId, int id)
-        {
-            var txt = await _reporteService.GenerarTxtBancoEmpresaAsync(id, companyId);
-            return File(txt, "text/plain", $"lote_banco_empresa_{companyId}_{id}.txt");
-        }
     }
 }

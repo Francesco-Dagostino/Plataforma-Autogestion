@@ -78,6 +78,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(c => c.Cuit).IsRequired();
                 entity.Property(c => c.DateHigh).IsRequired();
                 entity.Property(c => c.IsActive).IsRequired().HasDefaultValue(true);
+                entity.Property(c => c.HistoryAccessEnabled).IsRequired().HasDefaultValue(false);
                 entity.Property(c => c.ParameterSystem).IsRequired();
                 entity.Property(c => c.DailyHoursLimit).IsRequired().HasDefaultValue(12m);
             });
@@ -235,10 +236,15 @@ namespace PlataformaAutogestion.Infrastructure.Data
             // Si no encuentra la API en la carpeta actual, prueba una ruta relativa alternativa.
             if (!Directory.Exists(apiPath)) apiPath = Path.Combine(directory, "../PlataformaAutogestion.Api");
 
-            // Lee appsettings.json para obtener la connection string.
+            // Usa la configuración del entorno activo y permite sobrescribir la base
+            // destino con ConnectionStrings__DefaultConnection al ejecutar migraciones.
+            var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+                ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(apiPath))
                 .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true)
+                .AddEnvironmentVariables()
                 .Build();
 
             // Construye las opciones del DbContext.

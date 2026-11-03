@@ -20,29 +20,12 @@ namespace PlataformaAutogestion.Api.Controllers
 
         
 
-        [Authorize(Roles = "Admin, SuperAdmin")] 
+        [Authorize(Roles = "Admin")]
         [HttpGet("Mi Empresa")]
         public async Task<IActionResult> GetAll()
         {
-            var isAdmin = User.IsInRole("Admin");
-
-            if (isAdmin)
-            {
-                // Admin solo ve usuarios de su empresa
-                var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
-                var users = await _userService.GetAllByCompanyAsync(companyId);
-                return Ok(users);
-            }
-
-            // SuperAdmin ve todos
-            var allUsers = await _userService.GetAllAsync();
-            return Ok(allUsers);
-        }
-
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpGet("company/{companyId}")]
-        public async Task<IActionResult> GetAllByCompany(int companyId)
-        {
+            // El Admin solo ve los usuarios de su propia empresa.
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
             var users = await _userService.GetAllByCompanyAsync(companyId);
             return Ok(users);
         }

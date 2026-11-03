@@ -20,6 +20,9 @@ namespace PlataformaAutogestion.Domain.Entities
         // Baja lógica: conserva usuarios y registros para consulta del SuperAdmin.
         public bool IsActive { get; set; } = true;
 
+        // Permite al Admin entrar en modo de solo lectura cuando la empresa está desactivada.
+        public bool HistoryAccessEnabled { get; set; }
+
         [Required]
         [Range(typeof(decimal), "0.01", "999999999")]
         public decimal ParameterSystem { get; set; }

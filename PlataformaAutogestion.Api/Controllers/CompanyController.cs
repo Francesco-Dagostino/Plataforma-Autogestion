@@ -27,7 +27,18 @@ namespace PlataformaAutogestion.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var companies = await _service.GetAllAsync();
+            var companies = await _context.Companys.IgnoreQueryFilters().AsNoTracking()
+                .OrderBy(company => company.Name)
+                .Select(company => new
+                {
+                    company.Id,
+                    company.Name,
+                    company.Cuit,
+                    company.DateHigh,
+                    company.IsActive,
+                    company.HistoryAccessEnabled
+                })
+                .ToListAsync();
             return Ok(companies);
         }
 
@@ -113,63 +124,29 @@ namespace PlataformaAutogestion.Api.Controllers
         {
             try
             {
-                var company = await _service.GetByIdAsync(id);
+                var company = await _context.Companys.IgnoreQueryFilters().AsNoTracking()
+                    .Where(c => c.Id == id)
+                    .Select(c => new
+                    {
+                        c.Id,
+                        c.Name,
+                        c.Cuit,
+                        c.DateHigh,
+                        c.IsActive,
+                        c.HistoryAccessEnabled
+                    })
+                    .FirstOrDefaultAsync();
+                if (company == null) return NotFound("Empresa no encontrada.");
                 return Ok(company);
             }
-            catch (EntityNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            catch (EntityNotFoundException ex) { return NotFound(ex.Message); }
         }
 
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet("{id:int}/historial")]
         public async Task<IActionResult> GetHistory(int id)
         {
-            var company = await _context.Companys.IgnoreQueryFilters().AsNoTracking()
-                .Where(c => c.Id == id)
-                .Select(c => new { c.Id, c.Name, c.IsActive })
-                .FirstOrDefaultAsync();
-            if (company == null) return NotFound("Empresa no encontrada.");
-
-            var users = await _context.Users.IgnoreQueryFilters().AsNoTracking()
-                .Where(u => u.IdCompany == id)
-                .OrderBy(u => u.Name)
-                .Select(u => new { u.Id, u.Name, u.UserName, Role = u.role.ToString(), u.IsActive })
-                .ToListAsync();
-            var workdays = await _context.Workdays.IgnoreQueryFilters().AsNoTracking()
-                .Where(w => w.IdCompany == id)
-                .OrderByDescending(w => w.DateEntry)
-                .Select(w => new { w.Id, w.DateEntry, w.HoursWorked, State = w.Estado.ToString(), Employee = w.Usuario.Name })
-                .ToListAsync();
-            var liquidations = await _context.Liquidations.IgnoreQueryFilters().AsNoTracking()
-                .Where(l => l.IdCompany == id)
-                .OrderByDescending(l => l.LiquidationDate)
-                .Select(l => new { l.Id, l.LiquidationDate, l.ExecutionDate, l.Total, l.IsClosed })
-                .ToListAsync();
-            var details = await _context.Details.IgnoreQueryFilters().AsNoTracking()
-                .Where(d => d.IdCompany == id)
-                .OrderByDescending(d => d.Liquidation.LiquidationDate)
-                .Select(d => new { d.Id, d.IdLiquidation, Period = d.Liquidation.LiquidationDate, Employee = d.User.Name, d.TotalHours, d.Amount })
-                .ToListAsync();
-            var notifications = await _context.Notifications.IgnoreQueryFilters().AsNoTracking()
-                .Where(n => n.IdCompany == id)
-                .OrderByDescending(n => n.CreatedAt)
-                .Select(n => new { n.Id, n.Type, n.Message, n.CreatedAt, n.IsRead })
-                .ToListAsync();
-            var rateHistory = await _context.RateHistories.IgnoreQueryFilters().AsNoTracking()
-                .Where(r => r.IdCompany == id)
-                .OrderByDescending(r => r.ChangedAt)
-                .Select(r => new { r.Id, r.RateType, r.Value, r.PreviousValue, r.ChangedAt, r.UserName })
-                .ToListAsync();
-
-            return Ok(new
-            {
-                company,
-                counts = new { employees = users.Count(u => u.Role == "Empleado"), users = users.Count, workdays = workdays.Count,
-                    liquidations = liquidations.Count, liquidationDetails = details.Count, notifications = notifications.Count },
-                users, workdays, liquidations, details, notifications, rateHistory
-            });
+            return await GetSummary(id);
         }
 
         [Authorize(Roles = "SuperAdmin")]
@@ -178,7 +155,7 @@ namespace PlataformaAutogestion.Api.Controllers
         {
             var company = await _context.Companys.IgnoreQueryFilters().AsNoTracking()
                 .Where(c => c.Id == id)
-                .Select(c => new { c.Id, c.Name, c.IsActive })
+                .Select(c => new { c.Id, c.Name, c.IsActive, c.HistoryAccessEnabled })
                 .FirstOrDefaultAsync();
             if (company == null) return NotFound("Empresa no encontrada.");
 
@@ -203,6 +180,51 @@ namespace PlataformaAutogestion.Api.Controllers
             });
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpGet("consulta-historial")]
+        public async Task<IActionResult> GetAdminHistoricalConsultation()
+        {
+            var companyId = int.Parse(User.FindFirst("IdCompany")!.Value);
+            var company = await _context.Companys.IgnoreQueryFilters().AsNoTracking()
+                .Where(c => c.Id == companyId)
+                .Select(c => new { c.Id, c.Name, c.IsActive })
+                .FirstOrDefaultAsync();
+            if (company == null) return NotFound("Empresa no encontrada.");
+
+            var users = await _context.Users.IgnoreQueryFilters().AsNoTracking()
+                .Where(u => u.IdCompany == companyId)
+                .OrderBy(u => u.Name)
+                .Select(u => new { u.Id, u.Name, u.UserName, Role = u.role.ToString(), u.IsActive })
+                .ToListAsync();
+            var workdays = await _context.Workdays.IgnoreQueryFilters().AsNoTracking()
+                .Where(w => w.IdCompany == companyId)
+                .OrderByDescending(w => w.DateEntry)
+                .Select(w => new { w.Id, w.DateEntry, w.HoursWorked, State = w.Estado.ToString(), Employee = _context.Users.IgnoreQueryFilters().Where(u => u.Id == w.IdUser).Select(u => u.Name).FirstOrDefault(), w.MotivoRechazo })
+                .ToListAsync();
+            var liquidations = await _context.Liquidations.IgnoreQueryFilters().AsNoTracking()
+                .Where(l => l.IdCompany == companyId)
+                .OrderByDescending(l => l.LiquidationDate)
+                .Select(l => new { l.Id, l.LiquidationDate, l.ExecutionDate, l.Total, l.IsClosed })
+                .ToListAsync();
+            var details = await _context.Details.IgnoreQueryFilters().AsNoTracking()
+                .Where(d => d.IdCompany == companyId)
+                .OrderByDescending(d => d.Liquidation.LiquidationDate)
+                .Select(d => new { d.Id, d.IdLiquidation, Period = d.Liquidation.LiquidationDate, Employee = _context.Users.IgnoreQueryFilters().Where(u => u.Id == d.IdUser).Select(u => u.Name).FirstOrDefault(), d.TotalHours, d.Amount })
+                .ToListAsync();
+            var rateHistory = await _context.RateHistories.IgnoreQueryFilters().AsNoTracking()
+                .Where(r => r.IdCompany == companyId)
+                .OrderByDescending(r => r.ChangedAt)
+                .Select(r => new { r.Id, r.RateType, r.Value, r.PreviousValue, r.ChangedAt, r.UserName })
+                .ToListAsync();
+            var notifications = await _context.Notifications.IgnoreQueryFilters().AsNoTracking()
+                .Where(n => n.IdCompany == companyId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Select(n => new { n.Id, n.Type, n.Message, n.CreatedAt, n.IsRead })
+                .ToListAsync();
+
+            return Ok(new { company, users, workdays, liquidations, details, rateHistory, notifications });
+        }
+
         [Authorize(Roles = "SuperAdmin")]
         [HttpPut("{id:int}/estado")]
         public async Task<IActionResult> SetActive(int id, [FromBody] CompanyActiveRequest request)
@@ -213,6 +235,19 @@ namespace PlataformaAutogestion.Api.Controllers
                 return NoContent();
             }
             catch (EntityNotFoundException ex) { return NotFound(ex.Message); }
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpPut("{id:int}/acceso-historial")]
+        public async Task<IActionResult> SetHistoryAccess(int id, [FromBody] HistoryAccessRequest request)
+        {
+            try
+            {
+                await _service.SetHistoryAccessAsync(id, request.Enabled);
+                return NoContent();
+            }
+            catch (EntityNotFoundException ex) { return NotFound(ex.Message); }
+            catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
         }
 
         [Authorize(Roles = "SuperAdmin")]
@@ -249,5 +284,10 @@ namespace PlataformaAutogestion.Api.Controllers
     public class CompanyActiveRequest
     {
         public bool IsActive { get; set; }
+    }
+
+    public class HistoryAccessRequest
+    {
+        public bool Enabled { get; set; }
     }
 }

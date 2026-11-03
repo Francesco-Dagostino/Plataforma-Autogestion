@@ -64,9 +64,24 @@ namespace PlataformaAutogestion.Infrastructure.Services
             if (user == null || !user.IsActive || !PasswordHasher.Verify(password, user.Password))
                 throw new UnauthorizedAccessException("Credenciales inválidas");
 
-            if (user.IdCompany.HasValue && !await _context.Companys.IgnoreQueryFilters()
-                    .AnyAsync(company => company.Id == user.IdCompany.Value && company.IsActive))
-                throw new UnauthorizedAccessException("La empresa asociada a este usuario está desactivada.");
+            var historyOnly = false;
+            if (user.IdCompany.HasValue)
+            {
+                var company = await _context.Companys.IgnoreQueryFilters().AsNoTracking()
+                    .Where(company => company.Id == user.IdCompany.Value)
+                    .Select(company => new { company.IsActive, company.HistoryAccessEnabled })
+                    .FirstOrDefaultAsync();
+
+                if (company == null)
+                    throw new UnauthorizedAccessException("La empresa asociada a este usuario no existe.");
+
+                if (!company.IsActive)
+                {
+                    if (user.role != Roles.Admin || !company.HistoryAccessEnabled)
+                        throw new UnauthorizedAccessException("La empresa asociada a este usuario está desactivada.");
+                    historyOnly = true;
+                }
+            }
 
             if (!PasswordHasher.IsHashed(user.Password))
             {
@@ -86,7 +101,7 @@ namespace PlataformaAutogestion.Infrastructure.Services
                 };
             }
 
-            return new LoginResult { Token = GenerateToken(user) };
+            return new LoginResult { Token = GenerateToken(user, historyOnly) };
         }
 
         public async Task<MfaSetupResult> MfaSetupAsync(int userId)
@@ -294,7 +309,7 @@ namespace PlataformaAutogestion.Infrastructure.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private string GenerateToken(User user)
+        private string GenerateToken(User user, bool historyOnly = false)
         {
             var key = new SymmetricSecurityKey(
                 Encoding.ASCII.GetBytes(_options.SecretForKey));
@@ -309,6 +324,9 @@ namespace PlataformaAutogestion.Infrastructure.Services
 
             if (user.IdCompany.HasValue)
                 claims.Add(new Claim("IdCompany", user.IdCompany.Value.ToString()));
+
+            if (historyOnly)
+                claims.Add(new Claim("HistoryOnly", "true"));
 
             var token = new JwtSecurityToken(
                 _options.Issuer,

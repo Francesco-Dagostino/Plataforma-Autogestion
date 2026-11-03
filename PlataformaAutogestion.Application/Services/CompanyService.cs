@@ -71,6 +71,20 @@ namespace PlataformaAutogestion.Application.Services
                 ?? throw new EntityNotFoundException("Company", id);
 
             company.IsActive = isActive;
+            // El permiso de consulta solo existe mientras la empresa permanece desactivada.
+            company.HistoryAccessEnabled = false;
+            await _repository.UpdateAsync(company);
+        }
+
+        public async Task SetHistoryAccessAsync(int id, bool enabled)
+        {
+            var company = await _repository.GetByIdAsync(id)
+                ?? throw new EntityNotFoundException("Company", id);
+
+            if (company.IsActive && enabled)
+                throw new InvalidOperationException("Primero hay que desactivar la empresa para habilitar la consulta histórica.");
+
+            company.HistoryAccessEnabled = enabled;
             await _repository.UpdateAsync(company);
         }
 

@@ -21,6 +21,8 @@ namespace PlataformaAutogestion.Application.Models
 
         public bool IsActive { get; set; }
 
+        public bool HistoryAccessEnabled { get; set; }
+
         [Required]
         [Range(typeof(decimal), "0.01", "999999999")]
         public decimal ParameterSystem { get; set; }
@@ -41,6 +43,7 @@ namespace PlataformaAutogestion.Application.Models
                 Cuit = company.Cuit,
                 DateHigh = company.DateHigh,
                 IsActive = company.IsActive,
+                HistoryAccessEnabled = company.HistoryAccessEnabled,
                 ParameterSystem = company.ParameterSystem,
                 DailyHoursLimit = company.DailyHoursLimit,
                 HolidayHourlyRate = company.HolidayHourlyRate,
