@@ -23,6 +23,7 @@ namespace PlataformaAutogestion.Application.Models.Response
         public string Date { get; set; } = string.Empty;
         public decimal ApprovedHours { get; set; }
         public decimal PendingHours { get; set; }
+        public decimal RejectedHours { get; set; }
     }
 
     public class StatisticsResponse

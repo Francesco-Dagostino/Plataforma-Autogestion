@@ -73,14 +73,14 @@ namespace PlataformaAutogestion.Application.Services
             var totalResolved = totalApproved + totalRejected;
 
             var daily = workdays
-                .Where(w => w.Estado != StatusDay.Desaprobada)
                 .GroupBy(w => w.DateEntry.ToUniversalTime().Date)
                 .OrderBy(g => g.Key)
                 .Select(g => new DailyStatisticsResponse
                 {
                     Date = g.Key.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                     ApprovedHours = g.Where(w => w.Estado == StatusDay.Aprobada).Sum(w => w.HoursWorked),
-                    PendingHours = g.Where(w => w.Estado == StatusDay.Pendiente).Sum(w => w.HoursWorked)
+                    PendingHours = g.Where(w => w.Estado == StatusDay.Pendiente).Sum(w => w.HoursWorked),
+                    RejectedHours = g.Where(w => w.Estado == StatusDay.Desaprobada).Sum(w => w.HoursWorked)
                 })
                 .ToList();
 
