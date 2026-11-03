@@ -77,6 +77,7 @@ namespace PlataformaAutogestion.Infrastructure.Data
                 entity.Property(c => c.Name).IsRequired().HasMaxLength(150);
                 entity.Property(c => c.Cuit).IsRequired();
                 entity.Property(c => c.DateHigh).IsRequired();
+                entity.Property(c => c.IsActive).IsRequired().HasDefaultValue(true);
                 entity.Property(c => c.ParameterSystem).IsRequired();
                 entity.Property(c => c.DailyHoursLimit).IsRequired().HasDefaultValue(12m);
             });

@@ -50,6 +50,16 @@ namespace PlataformaAutogestion.Infrastructure.Data
                     .ThenInclude(d => d.User)
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
+
+        public async Task<Liquidation?> GetByIdWithDetailsForCompanyAsync(int id, int companyId)
+        {
+            return await _context.Set<Liquidation>()
+                .IgnoreQueryFilters()
+                .Include(l => l.detailLiquidations.Where(detail => detail.IdCompany == companyId))
+                    .ThenInclude(d => d.User)
+                .FirstOrDefaultAsync(l => l.Id == id && l.IdCompany == companyId);
+        }
+
         public async Task DeleteWithDetailsAsync(Liquidation liquidation)
         {
             var details = await _context.Set<DetailLiquidation>()

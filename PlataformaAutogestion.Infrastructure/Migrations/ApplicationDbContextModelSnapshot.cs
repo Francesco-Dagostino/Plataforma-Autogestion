@@ -44,6 +44,11 @@ namespace PlataformaAutogestion.Infrastructure.Migrations
                     b.Property<decimal?>("HolidayHourlyRate")
                         .HasColumnType("numeric");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)

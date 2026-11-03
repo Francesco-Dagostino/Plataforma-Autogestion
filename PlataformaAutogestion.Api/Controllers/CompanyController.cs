@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PlataformaAutogestion.Application.Interfaces;
 using PlataformaAutogestion.Application.Models.Requests;
 using PlataformaAutogestion.Domain.Exceptions;
+using PlataformaAutogestion.Infrastructure.Data;
+using static PlataformaAutogestion.Domain.Enums.QuestionState;
 
 namespace PlataformaAutogestion.Api.Controllers
 {
@@ -12,10 +15,12 @@ namespace PlataformaAutogestion.Api.Controllers
     public class CompanyController : ControllerBase
     {
         private readonly ICompanyService _service;
+        private readonly ApplicationDbContext _context;
 
-        public CompanyController(ICompanyService service)
+        public CompanyController(ICompanyService service, ApplicationDbContext context)
         {
             _service = service;
+            _context = context;
         }
 
         [Authorize(Roles = "SuperAdmin")]
@@ -118,6 +123,99 @@ namespace PlataformaAutogestion.Api.Controllers
         }
 
         [Authorize(Roles = "SuperAdmin")]
+        [HttpGet("{id:int}/historial")]
+        public async Task<IActionResult> GetHistory(int id)
+        {
+            var company = await _context.Companys.IgnoreQueryFilters().AsNoTracking()
+                .Where(c => c.Id == id)
+                .Select(c => new { c.Id, c.Name, c.IsActive })
+                .FirstOrDefaultAsync();
+            if (company == null) return NotFound("Empresa no encontrada.");
+
+            var users = await _context.Users.IgnoreQueryFilters().AsNoTracking()
+                .Where(u => u.IdCompany == id)
+                .OrderBy(u => u.Name)
+                .Select(u => new { u.Id, u.Name, u.UserName, Role = u.role.ToString(), u.IsActive })
+                .ToListAsync();
+            var workdays = await _context.Workdays.IgnoreQueryFilters().AsNoTracking()
+                .Where(w => w.IdCompany == id)
+                .OrderByDescending(w => w.DateEntry)
+                .Select(w => new { w.Id, w.DateEntry, w.HoursWorked, State = w.Estado.ToString(), Employee = w.Usuario.Name })
+                .ToListAsync();
+            var liquidations = await _context.Liquidations.IgnoreQueryFilters().AsNoTracking()
+                .Where(l => l.IdCompany == id)
+                .OrderByDescending(l => l.LiquidationDate)
+                .Select(l => new { l.Id, l.LiquidationDate, l.ExecutionDate, l.Total, l.IsClosed })
+                .ToListAsync();
+            var details = await _context.Details.IgnoreQueryFilters().AsNoTracking()
+                .Where(d => d.IdCompany == id)
+                .OrderByDescending(d => d.Liquidation.LiquidationDate)
+                .Select(d => new { d.Id, d.IdLiquidation, Period = d.Liquidation.LiquidationDate, Employee = d.User.Name, d.TotalHours, d.Amount })
+                .ToListAsync();
+            var notifications = await _context.Notifications.IgnoreQueryFilters().AsNoTracking()
+                .Where(n => n.IdCompany == id)
+                .OrderByDescending(n => n.CreatedAt)
+                .Select(n => new { n.Id, n.Type, n.Message, n.CreatedAt, n.IsRead })
+                .ToListAsync();
+            var rateHistory = await _context.RateHistories.IgnoreQueryFilters().AsNoTracking()
+                .Where(r => r.IdCompany == id)
+                .OrderByDescending(r => r.ChangedAt)
+                .Select(r => new { r.Id, r.RateType, r.Value, r.PreviousValue, r.ChangedAt, r.UserName })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                company,
+                counts = new { employees = users.Count(u => u.Role == "Empleado"), users = users.Count, workdays = workdays.Count,
+                    liquidations = liquidations.Count, liquidationDetails = details.Count, notifications = notifications.Count },
+                users, workdays, liquidations, details, notifications, rateHistory
+            });
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpGet("{id:int}/resumen")]
+        public async Task<IActionResult> GetSummary(int id)
+        {
+            var company = await _context.Companys.IgnoreQueryFilters().AsNoTracking()
+                .Where(c => c.Id == id)
+                .Select(c => new { c.Id, c.Name, c.IsActive })
+                .FirstOrDefaultAsync();
+            if (company == null) return NotFound("Empresa no encontrada.");
+
+            var users = _context.Users.IgnoreQueryFilters().Where(u => u.IdCompany == id);
+            var workdays = _context.Workdays.IgnoreQueryFilters().Where(w => w.IdCompany == id);
+            var liquidations = _context.Liquidations.IgnoreQueryFilters().Where(l => l.IdCompany == id);
+            var details = _context.Details.IgnoreQueryFilters().Where(d => d.IdCompany == id);
+            var notifications = _context.Notifications.IgnoreQueryFilters().Where(n => n.IdCompany == id);
+
+            return Ok(new
+            {
+                company,
+                counts = new
+                {
+                    employees = await users.CountAsync(u => u.role == Roles.Empleado),
+                    users = await users.CountAsync(),
+                    workdays = await workdays.CountAsync(),
+                    liquidations = await liquidations.CountAsync(),
+                    liquidationDetails = await details.CountAsync(),
+                    notifications = await notifications.CountAsync()
+                }
+            });
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpPut("{id:int}/estado")]
+        public async Task<IActionResult> SetActive(int id, [FromBody] CompanyActiveRequest request)
+        {
+            try
+            {
+                await _service.SetActiveAsync(id, request.IsActive);
+                return NoContent();
+            }
+            catch (EntityNotFoundException ex) { return NotFound(ex.Message); }
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] CompanyCreateRequest dto)
         {
@@ -146,5 +244,10 @@ namespace PlataformaAutogestion.Api.Controllers
                 return NotFound(ex.Message);
             }
         }
+    }
+
+    public class CompanyActiveRequest
+    {
+        public bool IsActive { get; set; }
     }
 }

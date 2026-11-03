@@ -27,6 +27,20 @@ namespace PlataformaAutogestion.Application.Services
             var liquidation = await _liquidationRepository.GetByIdWithDetailsAsync(liquidationId)
                 ?? throw new EntityNotFoundException("Liquidation", liquidationId);
 
+            return GenerateLiquidationPdf(liquidation);
+        }
+
+        public async Task<byte[]> GenerarPdfRecibosEmpresaAsync(int liquidationId, int companyId)
+        {
+            var liquidation = await _liquidationRepository.GetByIdWithDetailsForCompanyAsync(liquidationId, companyId)
+                ?? throw new EntityNotFoundException("Liquidation", liquidationId);
+
+            return GenerateLiquidationPdf(liquidation);
+        }
+
+        private static byte[] GenerateLiquidationPdf(Liquidation liquidation)
+        {
+
             if (liquidation.detailLiquidations == null || !liquidation.detailLiquidations.Any())
                 throw new InvalidOperationException("La liquidación no tiene detalles para generar recibos.");
 
@@ -112,6 +126,20 @@ namespace PlataformaAutogestion.Application.Services
         {
             var liquidation = await _liquidationRepository.GetByIdWithDetailsAsync(liquidationId)
                 ?? throw new EntityNotFoundException("Liquidation", liquidationId);
+
+            return GenerateBankTxt(liquidation);
+        }
+
+        public async Task<byte[]> GenerarTxtBancoEmpresaAsync(int liquidationId, int companyId)
+        {
+            var liquidation = await _liquidationRepository.GetByIdWithDetailsForCompanyAsync(liquidationId, companyId)
+                ?? throw new EntityNotFoundException("Liquidation", liquidationId);
+
+            return GenerateBankTxt(liquidation);
+        }
+
+        private static byte[] GenerateBankTxt(Liquidation liquidation)
+        {
 
             if (liquidation.detailLiquidations == null || !liquidation.detailLiquidations.Any())
                 throw new InvalidOperationException("La liquidación no tiene detalles para generar el lote bancario.");

@@ -65,6 +65,15 @@ namespace PlataformaAutogestion.Application.Services
             await _repository.UpdateAsync(company);
         }
 
+        public async Task SetActiveAsync(int id, bool isActive)
+        {
+            var company = await _repository.GetByIdAsync(id)
+                ?? throw new EntityNotFoundException("Company", id);
+
+            company.IsActive = isActive;
+            await _repository.UpdateAsync(company);
+        }
+
         public async Task UpdateProfileAsync(int id, CompanyProfileRequest dto)
         {
             var company = await _repository.GetByIdAsync(id)

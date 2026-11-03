@@ -63,8 +63,11 @@ namespace PlataformaAutogestion.Application.Services
                 if (request.IdCompany == null)
                     throw new OperationNotAllowedException("IdCompany es requerido para este rol.");
 
-                _ = await _companyRepository.GetByIdAsync(request.IdCompany.Value)
+                var company = await _companyRepository.GetByIdAsync(request.IdCompany.Value)
                     ?? throw new EntityNotFoundException("Company", request.IdCompany.Value);
+
+                if (!company.IsActive)
+                    throw new OperationNotAllowedException("No se pueden crear usuarios para una empresa desactivada.");
             }
 
             var user = new User
@@ -84,8 +87,10 @@ namespace PlataformaAutogestion.Application.Services
 
         public async Task<UserDTO> AddByAdminAsync(UserCreateByAdminRequest request, int companyId)
         {
-            _ = await _companyRepository.GetByIdAsync(companyId)
+            var company = await _companyRepository.GetByIdAsync(companyId)
                 ?? throw new EntityNotFoundException("Company", companyId);
+            if (!company.IsActive)
+                throw new OperationNotAllowedException("No se pueden crear usuarios para una empresa desactivada.");
 
             await EnsureUniqueAsync(request.UserName, request.Email);
 

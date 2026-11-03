@@ -64,6 +64,10 @@ namespace PlataformaAutogestion.Infrastructure.Services
             if (user == null || !user.IsActive || !PasswordHasher.Verify(password, user.Password))
                 throw new UnauthorizedAccessException("Credenciales inválidas");
 
+            if (user.IdCompany.HasValue && !await _context.Companys.IgnoreQueryFilters()
+                    .AnyAsync(company => company.Id == user.IdCompany.Value && company.IsActive))
+                throw new UnauthorizedAccessException("La empresa asociada a este usuario está desactivada.");
+
             if (!PasswordHasher.IsHashed(user.Password))
             {
                 user.Password = PasswordHasher.Hash(password);
@@ -182,6 +186,10 @@ namespace PlataformaAutogestion.Infrastructure.Services
             if (user == null || !user.IsActive)
                 throw new InvalidOperationException("El correo ingresado no se encuentra registrado.");
 
+            if (user.IdCompany.HasValue && !await _context.Companys.IgnoreQueryFilters()
+                    .AnyAsync(company => company.Id == user.IdCompany.Value && company.IsActive))
+                throw new InvalidOperationException("La empresa asociada a este usuario está desactivada.");
+
             // Invalidar tokens anteriores
             await _resetRepository.InvalidateAllForUserAsync(user.Id);
 
@@ -243,6 +251,10 @@ namespace PlataformaAutogestion.Infrastructure.Services
 
             if (resetToken.User == null || !resetToken.User.Email.Equals(email, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("El enlace de recuperación no es válido.");
+
+            if (resetToken.User.IdCompany.HasValue && !await _context.Companys.IgnoreQueryFilters()
+                    .AnyAsync(company => company.Id == resetToken.User.IdCompany.Value && company.IsActive))
+                throw new InvalidOperationException("La empresa asociada a este usuario está desactivada.");
 
             // Actualizar contraseña
             resetToken.User.Password = PasswordHasher.Hash(newPassword);

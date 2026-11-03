@@ -18,6 +18,7 @@ namespace PlataformaAutogestion.Application.Interfaces
         Task UpdateDailyLimitAsync(int id, CompanyDailyLimitRequest dto);
         Task UpdateHolidayRateAsync(int id, CompanyHolidayRateRequest dto, int? userId, string? userName);
         Task<List<RateHistoryDTO>> GetRateHistoryAsync(int companyId);
+        Task SetActiveAsync(int id, bool isActive);
         Task DeleteAsync(int id);
     }
 }

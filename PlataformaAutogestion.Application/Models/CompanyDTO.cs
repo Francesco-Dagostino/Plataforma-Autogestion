@@ -19,6 +19,8 @@ namespace PlataformaAutogestion.Application.Models
         [Required]
         public DateTime DateHigh { get; set; }
 
+        public bool IsActive { get; set; }
+
         [Required]
         [Range(typeof(decimal), "0.01", "999999999")]
         public decimal ParameterSystem { get; set; }
@@ -38,6 +40,7 @@ namespace PlataformaAutogestion.Application.Models
                 Name = company.Name,
                 Cuit = company.Cuit,
                 DateHigh = company.DateHigh,
+                IsActive = company.IsActive,
                 ParameterSystem = company.ParameterSystem,
                 DailyHoursLimit = company.DailyHoursLimit,
                 HolidayHourlyRate = company.HolidayHourlyRate,

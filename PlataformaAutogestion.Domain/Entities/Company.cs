@@ -17,6 +17,9 @@ namespace PlataformaAutogestion.Domain.Entities
         [Required]
         public DateTime DateHigh { get; set; }
 
+        // Baja lógica: conserva usuarios y registros para consulta del SuperAdmin.
+        public bool IsActive { get; set; } = true;
+
         [Required]
         [Range(typeof(decimal), "0.01", "999999999")]
         public decimal ParameterSystem { get; set; }
