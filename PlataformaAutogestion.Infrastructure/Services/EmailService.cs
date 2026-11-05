@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
@@ -12,14 +13,24 @@ namespace PlataformaAutogestion.Infrastructure.Services
         private readonly EmailServiceOptions _options;
         private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IOptions<EmailServiceOptions> options, ILogger<EmailService> logger)
+        private readonly HttpClient _httpClient;
+
+        public EmailService(HttpClient httpClient, IOptions<EmailServiceOptions> options, ILogger<EmailService> logger)
         {
+            _httpClient = httpClient;
             _options = options.Value;
             _logger = logger;
         }
 
         public async Task SendEmailAsync(string to, string subject, string htmlBody)
         {
+            // Si hay API key de Brevo se envía por HTTPS (SMTP está bloqueado en algunos hostings)
+            if (!string.IsNullOrWhiteSpace(_options.ApiKey))
+            {
+                await SendWithBrevoAsync(to, subject, htmlBody);
+                return;
+            }
+
             // Si no se configuraron credenciales reales, se simula el envío para pruebas locales
             if (string.IsNullOrWhiteSpace(_options.SenderPassword) || 
                 _options.SenderPassword.StartsWith("TU_") || 
@@ -49,6 +60,34 @@ namespace PlataformaAutogestion.Infrastructure.Services
             {
                 _logger.LogError(ex, "Error al enviar correo SMTP a {To}", to);
                 throw new InvalidOperationException("No se pudo enviar el correo de recuperación. Verifique las credenciales SMTP.", ex);
+            }
+        }
+
+        private async Task SendWithBrevoAsync(string to, string subject, string htmlBody)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
+                request.Headers.Add("api-key", _options.ApiKey);
+                request.Content = JsonContent.Create(new
+                {
+                    sender = new { name = _options.SenderName, email = _options.SenderEmail },
+                    to = new[] { new { email = to } },
+                    subject,
+                    htmlContent = htmlBody
+                });
+
+                using var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Brevo respondió {(int)response.StatusCode}: {body}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al enviar correo por Brevo a {To}", to);
+                throw new InvalidOperationException("No se pudo enviar el correo de recuperación.", ex);
             }
         }
     }

@@ -9,5 +9,6 @@ namespace PlataformaAutogestion.Infrastructure.Services
         public string SenderEmail { get; set; } = string.Empty;
         public string SenderPassword { get; set; } = string.Empty;
         public string SenderName { get; set; } = string.Empty;
+        public string ApiKey { get; set; } = string.Empty;
     }
 }

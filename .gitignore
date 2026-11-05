@@ -5,6 +5,7 @@
 
 # Build and publish folders
 appsettings.json
+appsettings.Development.json
 
 # dotenv files
 .env

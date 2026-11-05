@@ -137,7 +137,10 @@ builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 builder.Services.Configure<EmailServiceOptions>(
     builder.Configuration.GetSection(EmailServiceOptions.EmailService));
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient<IEmailService, EmailService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 #endregion
 
